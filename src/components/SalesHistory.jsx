@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  Receipt, 
-  Search, 
-  Printer, 
-  TrendingUp, 
-  DollarSign, 
+import {
+  Receipt,
+  Search,
+  Printer,
+  TrendingUp,
+  DollarSign,
   Smartphone
 } from 'lucide-react';
 
@@ -17,8 +17,8 @@ export default function SalesHistory() {
   const filteredTransactions = transactions.filter(tx => {
     const matchesPay = paymentFilter === 'ALL' || tx.payType === paymentFilter;
     const q = searchInvoice.toLowerCase().trim();
-    const matchesSearch = !q || 
-      tx.invoiceNo.toLowerCase().includes(q) || 
+    const matchesSearch = !q ||
+      tx.invoiceNo.toLowerCase().includes(q) ||
       (tx.customerName && tx.customerName.toLowerCase().includes(q)) ||
       (tx.trxId && tx.trxId.toLowerCase().includes(q));
     return matchesPay && matchesSearch;
@@ -48,7 +48,7 @@ export default function SalesHistory() {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
+
       {/* Header */}
       <div>
         <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 3px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -163,7 +163,7 @@ export default function SalesHistory() {
           <Search size={17} color="#94a3b8" style={{ position: 'absolute', left: '11px', top: '9px' }} />
           <input
             type="text"
-            placeholder="Search invoice number (e.g. 09282026ZAVI030373), customer..."
+            placeholder="Search invoice number (e.g. 09282026JIM030373), customer..."
             value={searchInvoice}
             onChange={(e) => setSearchInvoice(e.target.value)}
             style={{

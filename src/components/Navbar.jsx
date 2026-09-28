@@ -10,11 +10,24 @@ import {
   WifiOff, 
   Store, 
   UserCheck,
-  PlusCircle
+  PlusCircle,
+  LogOut,
+  Shield,
+  User
 } from 'lucide-react';
 
 export default function Navbar({ onOpenAddProduct }) {
-  const { activeTab, setActiveTab, shopSettings, isOnline, cart } = useApp();
+  const { 
+    activeTab, 
+    setActiveTab, 
+    shopSettings, 
+    isOnline, 
+    cart, 
+    currentUser, 
+    logoutUser, 
+    isAdmin 
+  } = useApp();
+  
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -24,13 +37,18 @@ export default function Navbar({ onOpenAddProduct }) {
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const navItems = [
-    { id: 'pos', label: 'POS Billing', icon: ShoppingCart, badge: totalCartCount > 0 ? totalCartCount : null },
-    { id: 'products', label: 'Products & Serials', icon: Package },
-    { id: 'sales', label: 'Sales Slips', icon: Receipt },
-    { id: 'architecture', label: 'Tech & Architecture', icon: BookOpen },
-    { id: 'settings', label: 'Store Settings', icon: Settings },
+  // Role-Based Navigation items: Seller only gets Billing & Sales
+  const allNavItems = [
+    { id: 'pos', label: 'POS Billing', icon: ShoppingCart, badge: totalCartCount > 0 ? totalCartCount : null, roles: ['admin', 'seller'] },
+    { id: 'products', label: 'Products & Serials', icon: Package, roles: ['admin'] },
+    { id: 'sales', label: 'Sales Slips', icon: Receipt, roles: ['admin', 'seller'] },
+    { id: 'architecture', label: 'Tech & Architecture', icon: BookOpen, roles: ['admin'] },
+    { id: 'settings', label: 'Store Settings', icon: Settings, roles: ['admin'] },
   ];
+
+  const visibleNavItems = allNavItems.filter(item => 
+    item.roles.includes(currentUser?.role || 'seller')
+  );
 
   return (
     <header style={{
@@ -99,7 +117,7 @@ export default function Navbar({ onOpenAddProduct }) {
 
       {/* Navigation tabs */}
       <nav style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-        {navItems.map(item => {
+        {visibleNavItems.map(item => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -141,43 +159,52 @@ export default function Navbar({ onOpenAddProduct }) {
         })}
       </nav>
 
-      {/* Right meta controls: Quick Add, Cashier & Online Badge */}
+      {/* Right meta controls: Quick Add (Admin Only), User Role Badge, Online Status, Sign Out */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <button
-          onClick={onOpenAddProduct}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: '#ecfdf5',
-            color: '#047857',
-            border: '1px solid #a7f3d0',
-            padding: '7px 12px',
-            borderRadius: '6px',
-            fontSize: '12px',
-            fontWeight: 700,
-            cursor: 'pointer'
-          }}
-          title="Add New Product to Catalog"
-        >
-          <PlusCircle size={15} />
-          <span>+ New Product</span>
-        </button>
+        {/* Only Admin can see + New Product */}
+        {isAdmin && (
+          <button
+            onClick={onOpenAddProduct}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#ecfdf5',
+              color: '#047857',
+              border: '1px solid #a7f3d0',
+              padding: '7px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+            title="Add New Product to Catalog (Admin Only)"
+          >
+            <PlusCircle size={15} />
+            <span>+ New Product</span>
+          </button>
+        )}
 
-        {/* Cashier status */}
+        {/* Current User Role Badge */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          padding: '6px 10px',
+          background: isAdmin ? '#fef3c7' : '#eff6ff',
+          border: `1px solid ${isAdmin ? '#fde68a' : '#bfdbfe'}`,
+          padding: '6px 11px',
           borderRadius: '6px',
           fontSize: '12px',
-          color: '#475569'
+          color: isAdmin ? '#92400e' : '#1e40af',
+          fontWeight: 700
         }}>
-          <UserCheck size={14} color="#059669" />
-          <span>Cashier: <strong style={{ color: '#0f172a' }}>{shopSettings.servedBy || "lipi"}</strong></span>
+          {isAdmin ? <Shield size={14} color="#d97706" /> : <User size={14} color="#2563eb" />}
+          <span>
+            {isAdmin ? '👑 Admin: ' : '👤 Seller: '}
+            <strong style={{ color: isAdmin ? '#78350f' : '#1e3a8a' }}>
+              {currentUser?.name || currentUser?.userId || "Cashier"}
+            </strong>
+          </span>
         </div>
 
         {/* Offline / Online badge */}
@@ -194,9 +221,39 @@ export default function Navbar({ onOpenAddProduct }) {
           color: isOnline ? '#059669' : '#d97706'
         }}>
           {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
-          <span>{isOnline ? 'ONLINE READY' : 'OFFLINE ACTIVE'}</span>
+          <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => {
+            if (confirm(`Sign out of ${currentUser?.name || 'POS'}?`)) {
+              logoutUser();
+            }
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: '#ffffff',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            padding: '6px 10px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'background 0.15s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+          onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+          title="Sign Out of POS System"
+        >
+          <LogOut size={13} />
+          <span>Logout</span>
+        </button>
       </div>
     </header>
   );
 }
+

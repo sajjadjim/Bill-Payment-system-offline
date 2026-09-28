@@ -163,9 +163,28 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 3. Enable Public Read & Insert Access (Anonymous POS)
+-- 3. Create Users / Cashiers Table (RBAC for Admin & Seller)
+CREATE TABLE IF NOT EXISTS public.users (
+  id TEXT PRIMARY KEY,
+  user_id TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'seller')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Insert Default Admin & Seller (if not exists)
+INSERT INTO public.users (id, user_id, name, password, role)
+VALUES 
+  ('usr-admin-1', 'admin', 'Store Admin', 'admin123', 'admin'),
+  ('usr-seller-1', 'lipi', 'Lipi Akter (Cashier)', 'seller123', 'seller'),
+  ('usr-seller-2', 'seller', 'Sales Associate', 'seller123', 'seller')
+ON CONFLICT (user_id) DO NOTHING;
+
+-- 4. Enable Public Read & Insert Access (Anonymous POS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public read on products" ON public.products FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on products" ON public.products FOR INSERT WITH CHECK (true);
@@ -174,4 +193,9 @@ CREATE POLICY "Allow public delete on products" ON public.products FOR DELETE US
 
 CREATE POLICY "Allow public read on transactions" ON public.transactions FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on transactions" ON public.transactions FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public read on users" ON public.users FOR SELECT USING (true);
+CREATE POLICY "Allow public insert on users" ON public.users FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update on users" ON public.users FOR UPDATE USING (true);
 `;
+

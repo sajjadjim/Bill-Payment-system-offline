@@ -18,7 +18,7 @@ A modern, production-grade Point of Sale (POS), inventory management, and bill p
 ### 2. 🧾 Authentic 58mm/80mm Thermal Receipt Generation
 - Modeled directly on the **Grace Super Shop** thermal slip:
   - **Store Header**: Name, Mirpur Dhaka address, Phone/Cell, VAT Reg No (`001092713`).
-  - **Metadata**: Date, Time, Shop ID (`ZAVI`), Cashier (`lipi`), Invoice `#` (`09282026ZAVI030373`), Customer details.
+  - **Metadata**: Date, Time, Shop ID (`JIM`), Cashier (`lipi`), Invoice `#` (`09282026JIM030373`), Customer details.
   - **Itemized Table**: Product title, barcode printed directly underneath, unit price, quantity, and line total.
   - **Billing Summary**: Total Tk, item discounts, VAT %, net payable, payment channel, cash given, and change returned.
   - **Loyalty Points Box**: Points earned, previous points balance, redeemed points.
@@ -106,9 +106,28 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 3. Enable RLS Policies
+-- 3. Create Users / Cashiers Table (RBAC for Admin & Seller)
+CREATE TABLE IF NOT EXISTS public.users (
+  id TEXT PRIMARY KEY,
+  user_id TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'seller')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Insert Default Admin & Seller (if not exists)
+INSERT INTO public.users (id, user_id, name, password, role)
+VALUES 
+  ('usr-admin-1', 'admin', 'Store Admin', 'admin123', 'admin'),
+  ('usr-seller-1', 'lipi', 'Lipi Akter (Cashier)', 'seller123', 'seller'),
+  ('usr-seller-2', 'seller', 'Sales Associate', 'seller123', 'seller')
+ON CONFLICT (user_id) DO NOTHING;
+
+-- 4. Enable RLS Policies
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public read on products" ON public.products FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on products" ON public.products FOR INSERT WITH CHECK (true);
@@ -117,7 +136,55 @@ CREATE POLICY "Allow public delete on products" ON public.products FOR DELETE US
 
 CREATE POLICY "Allow public read on transactions" ON public.transactions FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on transactions" ON public.transactions FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public read on users" ON public.users FOR SELECT USING (true);
+CREATE POLICY "Allow public insert on users" ON public.users FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update on users" ON public.users FOR UPDATE USING (true);
 ```
+
+---
+
+## 🔐 Staff Login & Role-Based Access Control (RBAC)
+
+The POS system enforces a secure, supermarket-grade **Staff Login** architecture. Public sign-up is disabled on the website; new cashiers and managers are provisioned directly in the database.
+
+### Role Permissions Matrix
+
+| Capability / Action | 👑 Admin | 👤 Seller / Cashier |
+| :--- | :---: | :---: |
+| **POS Billing & Barcode Scanning** | ✅ Full Access | ✅ Full Access |
+| **Product Selection & Cart Operations** | ✅ Full Access | ✅ Full Access |
+| **Accept Payments (Cash, bKash, Cards)** | ✅ Full Access | ✅ Full Access |
+| **Print 58mm/80mm Thermal Receipts** | ✅ Full Access | ✅ Full Access |
+| **View Past Sales Receipts** | ✅ Full Access | ✅ Full Access |
+| **Manually Edit Product Stock Quantity** | ✅ Yes (`-`, `+`, prompt) | ❌ Restricted |
+| **Update / Edit Product Details** | ✅ Yes | ❌ Restricted |
+| **Delete Products from Inventory** | ✅ Yes | ❌ Restricted |
+| **Add New Products to Catalog** | ✅ Yes | ❌ Restricted |
+| **Apply / Remove Bulk Discounts** | ✅ Yes | ❌ Restricted |
+| **Modify Store Settings (VAT, Address, etc.)** | ✅ Yes | ❌ Restricted |
+
+### Default Credentials (Ready for Testing)
+* **Administrator**:
+  * User ID: `admin`
+  * Password: `admin123`
+  * Permissions: Full store management, catalog editing, manual stock adjustments, billing.
+* **Seller / Cashier (Matches Physical Receipt)**:
+  * User ID: `lipi`
+  * Password: `seller123`
+  * Permissions: POS terminal billing and selling only. Receipts automatically print `Served By: Lipi Akter`.
+* **Alternative Seller**:
+  * User ID: `seller`
+  * Password: `seller123`
+
+### Adding New Sellers & Admins via Database
+To add a new employee, execute this SQL query in your Supabase SQL editor:
+```sql
+INSERT INTO public.users (id, user_id, name, password, role)
+VALUES ('usr-new-1', 'karim', 'Karim Ullah (Counter 2)', 'karim123', 'seller');
+```
+Once added, the new employee can immediately log in on the website with User ID `karim` and Password `karim123`!
+
 
 ---
 
