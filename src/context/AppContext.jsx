@@ -3,9 +3,66 @@ import { DEFAULT_PRODUCTS, DEFAULT_SHOP_SETTINGS } from '../data/defaultProducts
 import { supabase, compressProductImage, uploadImageToSupabase, SUPABASE_SETUP_SQL } from '../lib/supabaseClient';
 import { getProductPricing } from '../utils/pricing';
 
+export const DEFAULT_USERS = [
+  {
+    id: 'usr-admin-1',
+    userId: 'admin',
+    name: 'Store Administrator',
+    password: 'admin123',
+    role: 'admin'
+  },
+  {
+    id: 'usr-seller-1',
+    userId: 'lipi',
+    name: 'Lipi Akter (Cashier)',
+    password: 'seller123',
+    role: 'seller'
+  },
+  {
+    id: 'usr-seller-2',
+    userId: 'seller',
+    name: 'Sales Counter Staff',
+    password: 'seller123',
+    role: 'seller'
+  }
+];
+
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  // Staff Users & Auth State (Admin vs Seller RBAC)
+  const [users, setUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('grace_pos_users');
+      return saved ? JSON.parse(saved) : DEFAULT_USERS;
+    } catch {
+      return DEFAULT_USERS;
+    }
+  });
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('grace_pos_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Sync users to local storage
+  useEffect(() => {
+    localStorage.setItem('grace_pos_users', JSON.stringify(users));
+  }, [users]);
+
+  // Sync current user session
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('grace_pos_auth_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('grace_pos_auth_user');
+    }
+  }, [currentUser]);
+
   // Products state (localStorage-backed + Supabase cloud sync)
   const [products, setProducts] = useState(() => {
     try {
@@ -20,8 +77,8 @@ export function AppProvider({ children }) {
             sku: p.sku || `PRD-${String(idx + 1).padStart(4, '0')}`,
             brand: p.brand || defaultMatch?.brand || 'General',
             discount: p.discount || defaultMatch?.discount || { type: 'percent', value: 0 },
-            image: p.image && !p.image.startsWith('http') && !p.image.startsWith('data:') && defaultMatch 
-              ? defaultMatch.image 
+            image: p.image && !p.image.startsWith('http') && !p.image.startsWith('data:') && defaultMatch
+              ? defaultMatch.image
               : p.image || defaultMatch?.image
           };
         });
@@ -43,6 +100,7 @@ export function AppProvider({ children }) {
   });
 
   // Active POS Cart (Billing List) - Persisted across page hard refreshes!
+
   const [cart, setCart] = useState(() => {
     try {
       const savedCart = localStorage.getItem('grace_pos_active_cart');
@@ -70,11 +128,11 @@ export function AppProvider({ children }) {
       return [
         {
           id: "tx-sample-1",
-          invoiceNo: "09282026ZAVI030373",
+          invoiceNo: "09282026JIM030373",
           date: "09/28/2026",
           time: "10:42:30PM",
           timestamp: new Date("2026-09-28T22:42:30").getTime(),
-          shopId: "ZAVI",
+          shopId: "JIM",
           servedBy: "lipi",
           customerId: "",
           customerName: "Walk-in Customer",
@@ -190,12 +248,12 @@ export function AppProvider({ children }) {
     if (!navigator.onLine) return;
     try {
       setSupabaseStatus('syncing');
+      
+      // Sync products
       const { data, error } = await supabase.from('products').select('*');
       if (error) {
         setSupabaseStatus('table_needed');
-        return;
-      }
-      if (data && data.length > 0) {
+      } else if (data && data.length > 0) {
         const mapped = data.map((item, idx) => ({
           id: item.id,
           slNo: item.sl_no || idx + 1,
@@ -213,6 +271,24 @@ export function AppProvider({ children }) {
         }));
         setProducts(mapped);
       }
+
+      // Sync users from Supabase users table (manually created accounts)
+      try {
+        const { data: userData, error: userError } = await supabase.from('users').select('*');
+        if (!userError && userData && userData.length > 0) {
+          const mappedUsers = userData.map(u => ({
+            id: u.id,
+            userId: u.user_id,
+            name: u.name,
+            password: u.password,
+            role: u.role
+          }));
+          setUsers(mappedUsers);
+        }
+      } catch (userErr) {
+        console.warn("Supabase user sync error:", userErr);
+      }
+
       setSupabaseStatus('connected');
     } catch {
       setSupabaseStatus('error');
@@ -222,6 +298,37 @@ export function AppProvider({ children }) {
   useEffect(() => {
     syncWithSupabase();
   }, []);
+
+  // Staff Authentication & Role Operations
+  const loginUser = (inputId, inputPass) => {
+    const cleanId = (inputId || '').trim().toLowerCase();
+    const match = users.find(u => u.userId.toLowerCase() === cleanId);
+
+    if (!match) {
+      return { success: false, error: 'User ID not found in database. Please check credentials.' };
+    }
+
+    if (match.password !== inputPass) {
+      return { success: false, error: 'Incorrect password for this user ID.' };
+    }
+
+    setCurrentUser(match);
+
+    // If seller logs in, route to POS and automatically set servedBy name on receipts
+    if (match.role === 'seller') {
+      setActiveTab('pos');
+      setShopSettings(prev => ({ ...prev, servedBy: match.name || match.userId }));
+    }
+
+    return { success: true, user: match };
+  };
+
+  const logoutUser = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('grace_pos_auth_user');
+    setActiveTab('pos');
+  };
+
 
   // Cart operations
   const addToCart = (product, qty = 1) => {
@@ -313,12 +420,16 @@ export function AppProvider({ children }) {
     const dd = String(now.getDate()).padStart(2, '0');
     const yyyy = now.getFullYear();
     const dateStr = `${mm}${dd}${yyyy}`;
-    const shopCode = shopSettings.shopId || "ZAVI";
+    const shopCode = shopSettings.shopId || "JIM";
     const randSeq = String(Math.floor(10000 + Math.random() * 90000));
     return `${dateStr}${shopCode}${randSeq}`;
   };
 
   const applyBulkDiscount = (productIds, discountObj) => {
+    if (currentUser?.role === 'seller') {
+      alert("Permission Denied: Only Admin can modify product discounts.");
+      return;
+    }
     setProducts(prev =>
       prev.map(p => {
         if (productIds.includes(p.id)) {
@@ -332,6 +443,10 @@ export function AppProvider({ children }) {
   };
 
   const clearBulkDiscount = (productIds) => {
+    if (currentUser?.role === 'seller') {
+      alert("Permission Denied: Only Admin can modify product discounts.");
+      return;
+    }
     applyBulkDiscount(productIds, { type: 'percent', value: 0 });
   };
 
@@ -390,7 +505,7 @@ export function AppProvider({ children }) {
       time: timeStr,
       timestamp: now.getTime(),
       shopId: shopSettings.shopId,
-      servedBy: shopSettings.servedBy,
+      servedBy: currentUser ? (currentUser.name || currentUser.userId) : (shopSettings.servedBy || "lipi"),
       customerId: activeCustomer.id,
       customerName: activeCustomer.name,
       items: itemsSummary,
@@ -409,6 +524,7 @@ export function AppProvider({ children }) {
       previousPointBalance: activeCustomer.points || 0,
       redeemPoint: 0
     };
+
 
     setProducts(prevProducts =>
       prevProducts.map(prod => {
@@ -480,6 +596,10 @@ export function AppProvider({ children }) {
   };
 
   const addProduct = (newProduct) => {
+    if (currentUser?.role === 'seller') {
+      alert("Permission Denied: Only Admin can add new products to the catalog.");
+      return null;
+    }
     const nextSl = products.length + 1;
     const created = {
       ...newProduct,
@@ -500,6 +620,10 @@ export function AppProvider({ children }) {
   };
 
   const updateProduct = (id, updatedFields) => {
+    if (currentUser?.role === 'seller') {
+      alert("Permission Denied: Only Admin can update products or manually edit stock quantities.");
+      return;
+    }
     setProducts(prev =>
       prev.map(p => {
         if (p.id === id) {
@@ -513,13 +637,21 @@ export function AppProvider({ children }) {
   };
 
   const deleteProduct = (id) => {
+    if (currentUser?.role === 'seller') {
+      alert("Permission Denied: Only Admin can delete products from inventory.");
+      return;
+    }
     setProducts(prev => prev.filter(p => p.id !== id));
     if (navigator.onLine) {
-      supabase.from('products').delete().eq('id', id).then(() => {}).catch(() => {});
+      supabase.from('products').delete().eq('id', id).then(() => { }).catch(() => { });
     }
   };
 
   const resetToSampleData = () => {
+    if (currentUser?.role === 'seller') {
+      alert("Permission Denied: Only Admin can reset store data.");
+      return;
+    }
     setProducts(DEFAULT_PRODUCTS);
     setShopSettings(DEFAULT_SHOP_SETTINGS);
   };
@@ -527,6 +659,12 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider
       value={{
+        users,
+        currentUser,
+        loginUser,
+        logoutUser,
+        isAdmin: currentUser?.role === 'admin',
+        isSeller: currentUser?.role === 'seller',
         products,
         addProduct,
         updateProduct,
@@ -562,6 +700,7 @@ export function AppProvider({ children }) {
         getProductPricing
       }}
     >
+
       {children}
     </AppContext.Provider>
   );

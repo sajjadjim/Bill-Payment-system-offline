@@ -35,7 +35,7 @@ export default function ReceiptSlip({ receipt, onClose, shopSettings }) {
           CELL # ${shopSettings?.cell || "01310191458"}
         Vat Reg No # ${shopSettings?.vatRegNo || "001092713"}
 -----------------------------------------
-Date : ${receipt.date}       Shop Id  : ${receipt.shopId || "ZAVI"}
+Date : ${receipt.date}       Shop Id  : ${receipt.shopId || shopSettings?.shopId || "ZAVI"}
 Time : ${receipt.time}       Served By: ${receipt.servedBy || "lipi"}
 Invoice : ${receipt.invoiceNo}
 Customer ID   : ${receipt.customerId || "N/A"}
@@ -158,7 +158,7 @@ ${shopSettings?.systemProvider || "System by: Mediasoft Data Systems ltd. 02-550
             <div style={{ fontSize: '10.5px', marginTop: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Date : {receipt.date}</span>
-                <span>Shop Id &nbsp;: {receipt.shopId || "ZAVI"}</span>
+                <span>Shop Id &nbsp;: {receipt.shopId || shopSettings?.shopId || "ZAVI"}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Time : {receipt.time}</span>
