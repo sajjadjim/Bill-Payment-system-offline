@@ -191,6 +191,21 @@ CREATE TABLE IF NOT EXISTS public.customers (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+-- Insert Demo Customers with Phone Numbers & Loyalty Points (100 Tk = 1 Pt, 3 Months Validity)
+INSERT INTO public.customers (phone, name, total_valid_points, points_ledger)
+VALUES 
+  ('01711223344', 'Rahim Ahmed', 100, '[{"id":"pt-1","points":100,"invoiceNo":"F64101","earnedAt":1790000000000,"expiresAt":1798000000000}]'::jsonb),
+  ('01819556677', 'Karima Begum', 200, '[{"id":"pt-2","points":200,"invoiceNo":"F64102","earnedAt":1790000000000,"expiresAt":1798000000000}]'::jsonb),
+  ('01912345678', 'Tanvir Hasan', 350, '[{"id":"pt-3","points":350,"invoiceNo":"F64103","earnedAt":1790000000000,"expiresAt":1798000000000}]'::jsonb),
+  ('01620754986', 'Sajjad Hossain', 500, '[{"id":"pt-4","points":500,"invoiceNo":"F64104","earnedAt":1790000000000,"expiresAt":1798000000000}]'::jsonb),
+  ('01899887766', 'Sadia Islam', 150, '[{"id":"pt-5","points":150,"invoiceNo":"F64105","earnedAt":1790000000000,"expiresAt":1798000000000}]'::jsonb),
+  ('01552334455', 'Nusrat Jahan', 80, '[{"id":"pt-6","points":80,"invoiceNo":"F64106","earnedAt":1790000000000,"expiresAt":1798000000000}]'::jsonb)
+ON CONFLICT (phone) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  total_valid_points = EXCLUDED.total_valid_points,
+  points_ledger = EXCLUDED.points_ledger;
+
 -- 5. Enable Public Read & Insert Access (Anonymous POS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;

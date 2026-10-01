@@ -89,11 +89,11 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('grace_pos_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...DEFAULT_SHOP_SETTINGS, ...parsed };
+        return { ...DEFAULT_SHOP_SETTINGS, ...parsed, softwareVersion: '2.0.1' };
       }
-      return DEFAULT_SHOP_SETTINGS;
+      return { ...DEFAULT_SHOP_SETTINGS, softwareVersion: '2.0.1' };
     } catch {
-      return DEFAULT_SHOP_SETTINGS;
+      return { ...DEFAULT_SHOP_SETTINGS, softwareVersion: '2.0.1' };
     }
   });
 
@@ -119,6 +119,7 @@ export function AppProvider({ children }) {
   });
 
   // Customer Loyalty Points Database (Indexed by Mobile Number Only)
+  // Customer Loyalty Points Database (Indexed by Mobile Number Only)
   // Rule: 100 Tk purchase = 1 point, 3 months validity, 100 points = 75 Tk discount
   const DEFAULT_CUSTOMERS = {
     '01711223344': {
@@ -130,7 +131,46 @@ export function AppProvider({ children }) {
           points: 100,
           earnedAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
           expiresAt: Date.now() + 80 * 24 * 60 * 60 * 1000,
-          invoiceNo: '09202026JIM0123'
+          invoiceNo: 'F64101'
+        }
+      ]
+    },
+    '01819556677': {
+      phone: '01819556677',
+      name: 'Karima Begum',
+      pointsLedger: [
+        {
+          id: 'pt-2',
+          points: 200,
+          earnedAt: Date.now() - 15 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 75 * 24 * 60 * 60 * 1000,
+          invoiceNo: 'F64102'
+        }
+      ]
+    },
+    '01912345678': {
+      phone: '01912345678',
+      name: 'Tanvir Hasan',
+      pointsLedger: [
+        {
+          id: 'pt-3',
+          points: 350,
+          earnedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 85 * 24 * 60 * 60 * 1000,
+          invoiceNo: 'F64103'
+        }
+      ]
+    },
+    '01620754986': {
+      phone: '01620754986',
+      name: 'Sajjad Hossain',
+      pointsLedger: [
+        {
+          id: 'pt-4',
+          points: 500,
+          earnedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 88 * 24 * 60 * 60 * 1000,
+          invoiceNo: 'F64104'
         }
       ]
     },
@@ -139,11 +179,24 @@ export function AppProvider({ children }) {
       name: 'Sadia Islam',
       pointsLedger: [
         {
-          id: 'pt-2',
-          points: 200,
+          id: 'pt-5',
+          points: 150,
           earnedAt: Date.now() - 20 * 24 * 60 * 60 * 1000,
           expiresAt: Date.now() + 70 * 24 * 60 * 60 * 1000,
-          invoiceNo: '09102026JIM0456'
+          invoiceNo: 'F64105'
+        }
+      ]
+    },
+    '01552334455': {
+      phone: '01552334455',
+      name: 'Nusrat Jahan',
+      pointsLedger: [
+        {
+          id: 'pt-6',
+          points: 80,
+          earnedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 89 * 24 * 60 * 60 * 1000,
+          invoiceNo: 'F64106'
         }
       ]
     }
@@ -152,7 +205,10 @@ export function AppProvider({ children }) {
   const [customers, setCustomers] = useState(() => {
     try {
       const saved = localStorage.getItem('grace_pos_customers');
-      return saved ? JSON.parse(saved) : DEFAULT_CUSTOMERS;
+      if (saved) {
+        return { ...DEFAULT_CUSTOMERS, ...JSON.parse(saved) };
+      }
+      return DEFAULT_CUSTOMERS;
     } catch {
       return DEFAULT_CUSTOMERS;
     }

@@ -518,7 +518,7 @@ export default function PosTerminal() {
               <strong>User :</strong> <span style={{ color: '#0924e8', fontWeight: 800 }}>{currentUser?.userId || shopSettings.servedBy || "L61627"}</span>
             </span>
             <span style={{ borderLeft: '1.5px solid #94a3b8', paddingLeft: '12px' }}>
-              <strong>Version :</strong> <span style={{ color: '#0924e8' }}>{shopSettings.softwareVersion || "4.0.5"}</span>
+              <strong>Version :</strong> <span style={{ color: '#0924e8' }}>{shopSettings.softwareVersion || "2.0.1"}</span>
             </span>
           </div>
         </div>
@@ -692,7 +692,7 @@ export default function PosTerminal() {
         {/* Center: Optional Customer Mobile # & Real-Time Loyalty Points (Only if customer wants points) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           
-          {/* Mobile # Input (Optional - left empty by default) */}
+          {/* Mobile # Input (Optional - left empty by default) with Quick Demo Selector */}
           <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '3px' }}>
             <span style={{ background: '#0924e8', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>Mobile #</span>
             <input
@@ -707,11 +707,39 @@ export default function PosTerminal() {
                 fontSize: '14px',
                 fontWeight: 800,
                 outline: 'none',
-                width: '115px',
+                width: '110px',
                 fontFamily: 'monospace',
                 color: customerLoyalty.found ? '#065f46' : '#0f172a'
               }}
             />
+            {/* Quick Demo Customer Selector */}
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  setCustomerPhone(e.target.value);
+                }
+              }}
+              value=""
+              style={{
+                background: '#eff6ff',
+                border: 'none',
+                borderLeft: '1px solid #bfdbfe',
+                padding: '5px 6px',
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#1d4ed8',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+              title="Select a Demo Customer with Points"
+            >
+              <option value="">Demo ▾</option>
+              <option value="01711223344">01711223344 (Rahim - 100 Pts / ৳75)</option>
+              <option value="01819556677">01819556677 (Karima - 200 Pts / ৳150)</option>
+              <option value="01620754986">01620754986 (Sajjad - 500 Pts / ৳375)</option>
+              <option value="01912345678">01912345678 (Tanvir - 350 Pts / ৳262)</option>
+              <option value="01899887766">01899887766 (Sadia - 150 Pts / ৳112)</option>
+            </select>
           </div>
 
           {/* Points Display (Live from database, valid within 3 months) */}
