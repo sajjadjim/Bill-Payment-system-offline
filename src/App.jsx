@@ -41,48 +41,14 @@ export default function App() {
         }}
       />
 
-      {/* Main Tab Content with Role-Based Access Control */}
+      {/* Main Tab Content */}
       <main className="main-content">
         {activeTab === 'pos' && <PosTerminal />}
         {activeTab === 'products' && (
-          isAdmin ? (
-            <ProductManagement
-              isAddModalOpen={isAddModalOpen}
-              setIsAddModalOpen={setIsAddModalOpen}
-            />
-          ) : (
-            <div style={{
-              padding: '60px 20px',
-              textAlign: 'center',
-              background: '#ffffff',
-              borderRadius: '12px',
-              margin: '20px',
-              border: '1px solid #fee2e2'
-            }}>
-              <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔒</div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b', margin: '0 0 8px 0' }}>
-                Access Restricted: Administrator Only
-              </h2>
-              <p style={{ color: '#64748b', fontSize: '13px', maxWidth: '440px', margin: '0 auto 16px auto' }}>
-                As a Seller / Cashier, you have permission to sell, scan barcodes, and process transactions. Product stock modification and catalog editing are reserved for Administrators.
-              </p>
-              <button
-                onClick={() => setActiveTab('pos')}
-                style={{
-                  background: '#059669',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '9px 18px',
-                  borderRadius: '6px',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
-              >
-                Return to POS Billing
-              </button>
-            </div>
-          )
+          <ProductManagement
+            isAddModalOpen={isAddModalOpen}
+            setIsAddModalOpen={setIsAddModalOpen}
+          />
         )}
         {activeTab === 'sales' && <SalesHistory />}
         {activeTab === 'settings' && (

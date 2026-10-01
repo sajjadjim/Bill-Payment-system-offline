@@ -275,15 +275,20 @@ ${shopSettings?.systemProvider || "System by: Mediasoft Data Systems ltd. 02-550
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Point This Invoice:</span>
-                <span>{Number(receipt.pointsThisInvoice || 0).toFixed(2)}</span>
+                <span style={{ fontWeight: 800 }}>+{Number(receipt.pointsThisInvoice || 0).toFixed(0)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Previous Point Balance:</span>
-                <span>{Number(receipt.previousPointBalance || 0).toFixed(2)}</span>
+                <span>Current Point Balance:</span>
+                <span style={{ fontWeight: 800 }}>{Number(receipt.previousPointBalance || 0).toFixed(0)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Redem Point:</span>
-                <span>{Number(receipt.redeemPoint || 0).toFixed(2)}</span>
+              {Number(receipt.redeemPoint || 0) > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 800 }}>
+                  <span>Redeemed Point:</span>
+                  <span>-{Number(receipt.redeemPoint || 0).toFixed(0)}</span>
+                </div>
+              )}
+              <div style={{ borderTop: '1px dashed #d1d5db', marginTop: '3px', paddingTop: '2px', fontSize: '9px', color: '#4b5563', textAlign: 'center' }}>
+                * Points valid for 3 months. 100 Pts = Tk 75 discount *
               </div>
             </div>
 

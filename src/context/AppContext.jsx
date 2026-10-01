@@ -5,18 +5,18 @@ import { getProductPricing } from '../utils/pricing';
 
 export const DEFAULT_USERS = [
   {
+    id: 'usr-cashier-1',
+    userId: 'L61627',
+    name: 'L61627 (Cashier)',
+    password: 'seller123',
+    role: 'admin'
+  },
+  {
     id: 'usr-admin-1',
     userId: 'admin',
     name: 'Store Administrator',
     password: 'admin123',
     role: 'admin'
-  },
-  {
-    id: 'usr-seller-1',
-    userId: 'lipi',
-    name: 'Lipi Akter (Cashier)',
-    password: 'seller123',
-    role: 'seller'
   },
   {
     id: 'usr-seller-2',
@@ -43,9 +43,9 @@ export function AppProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('grace_pos_auth_user');
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : DEFAULT_USERS[0];
     } catch {
-      return null;
+      return DEFAULT_USERS[0];
     }
   });
 
@@ -69,19 +69,13 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('grace_pos_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((p, idx) => {
-          const defaultMatch = DEFAULT_PRODUCTS.find(dp => dp.barcode === p.barcode);
-          return {
-            ...p,
-            slNo: p.slNo || idx + 1,
-            sku: p.sku || `PRD-${String(idx + 1).padStart(4, '0')}`,
-            brand: p.brand || defaultMatch?.brand || 'General',
-            discount: p.discount || defaultMatch?.discount || { type: 'percent', value: 0 },
-            image: p.image && !p.image.startsWith('http') && !p.image.startsWith('data:') && defaultMatch
-              ? defaultMatch.image
-              : p.image || defaultMatch?.image
-          };
-        });
+        // Ensure new photo products exist
+        const hasPhotoItems = parsed.some(p => p.barcode === '2603029');
+        if (hasPhotoItems) {
+          return parsed;
+        }
+        // merge missing defaults
+        return [...DEFAULT_PRODUCTS.slice(0, 3), ...parsed];
       }
       return DEFAULT_PRODUCTS;
     } catch {
@@ -93,22 +87,136 @@ export function AppProvider({ children }) {
   const [shopSettings, setShopSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('grace_pos_settings');
-      return saved ? JSON.parse(saved) : DEFAULT_SHOP_SETTINGS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...DEFAULT_SHOP_SETTINGS, ...parsed };
+      }
+      return DEFAULT_SHOP_SETTINGS;
     } catch {
       return DEFAULT_SHOP_SETTINGS;
     }
   });
 
   // Active POS Cart (Billing List) - Persisted across page hard refreshes!
-
+  // Defaults to the 3 items shown in the Bangladeshi supershop photo
   const [cart, setCart] = useState(() => {
     try {
       const savedCart = localStorage.getItem('grace_pos_active_cart');
-      return savedCart ? JSON.parse(savedCart) : [];
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+
+    const rok = DEFAULT_PRODUCTS.find(p => p.barcode === '2603029');
+    const saad = DEFAULT_PRODUCTS.find(p => p.barcode === '2704597');
+    const sixers = DEFAULT_PRODUCTS.find(p => p.barcode === '2817974');
+    const initial = [];
+    if (rok) initial.push({ product: rok, qty: 2 });
+    if (saad) initial.push({ product: saad, qty: 1 });
+    if (sixers) initial.push({ product: sixers, qty: 1 });
+    return initial;
+  });
+
+  // Customer Loyalty Points Database (Indexed by Mobile Number Only)
+  // Rule: 100 Tk purchase = 1 point, 3 months validity, 100 points = 75 Tk discount
+  const DEFAULT_CUSTOMERS = {
+    '01711223344': {
+      phone: '01711223344',
+      name: 'Rahim Ahmed',
+      pointsLedger: [
+        {
+          id: 'pt-1',
+          points: 100,
+          earnedAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 80 * 24 * 60 * 60 * 1000,
+          invoiceNo: '09202026JIM0123'
+        }
+      ]
+    },
+    '01899887766': {
+      phone: '01899887766',
+      name: 'Sadia Islam',
+      pointsLedger: [
+        {
+          id: 'pt-2',
+          points: 200,
+          earnedAt: Date.now() - 20 * 24 * 60 * 60 * 1000,
+          expiresAt: Date.now() + 70 * 24 * 60 * 60 * 1000,
+          invoiceNo: '09102026JIM0456'
+        }
+      ]
+    }
+  };
+
+  const [customers, setCustomers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('grace_pos_customers');
+      return saved ? JSON.parse(saved) : DEFAULT_CUSTOMERS;
+    } catch {
+      return DEFAULT_CUSTOMERS;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('grace_pos_customers', JSON.stringify(customers));
+  }, [customers]);
+
+  // Sync customers from Supabase cloud database on startup
+  useEffect(() => {
+    const fetchCustomersCloud = async () => {
+      if (!navigator.onLine) return;
+      try {
+        const { data, error } = await supabase.from('customers').select('*');
+        if (!error && data && data.length > 0) {
+          setCustomers(prev => {
+            const merged = { ...prev };
+            data.forEach(c => {
+              if (c.phone) {
+                merged[c.phone] = {
+                  phone: c.phone,
+                  name: c.name || merged[c.phone]?.name || 'Customer',
+                  pointsLedger: c.points_ledger || merged[c.phone]?.pointsLedger || []
+                };
+              }
+            });
+            return merged;
+          });
+        }
+      } catch (err) {
+        console.warn("Supabase fetch customers skipped:", err);
+      }
+    };
+    fetchCustomersCloud();
+  }, []);
+
+  // Held Invoices (Supports up to 5 Multiple Customer Bills: Recall Invoice - 1 to 5)
+  const [heldInvoices, setHeldInvoices] = useState(() => {
+    try {
+      const saved = localStorage.getItem('grace_pos_held_invoices');
+      return saved ? JSON.parse(saved) : [
+        {
+          slot: 1,
+          title: 'Recall Invoice - 1',
+          time: '09:40 PM',
+          itemsCount: 2,
+          total: 195.00,
+          customerPhone: '01711223344',
+          customerName: 'Rahim Ahmed',
+          cart: [
+            { product: DEFAULT_PRODUCTS[3] || DEFAULT_PRODUCTS[0], qty: 1 },
+            { product: DEFAULT_PRODUCTS[4] || DEFAULT_PRODUCTS[1], qty: 1 }
+          ]
+        }
+      ];
     } catch {
       return [];
     }
   });
+
+  useEffect(() => {
+    localStorage.setItem('grace_pos_held_invoices', JSON.stringify(heldInvoices));
+  }, [heldInvoices]);
 
   // Active Cart Discount - Persisted across page hard refreshes!
   const [cartDiscount, setCartDiscount] = useState(() => {
@@ -426,10 +534,6 @@ export function AppProvider({ children }) {
   };
 
   const applyBulkDiscount = (productIds, discountObj) => {
-    if (currentUser?.role === 'seller') {
-      alert("Permission Denied: Only Admin can modify product discounts.");
-      return;
-    }
     setProducts(prev =>
       prev.map(p => {
         if (productIds.includes(p.id)) {
@@ -443,17 +547,25 @@ export function AppProvider({ children }) {
   };
 
   const clearBulkDiscount = (productIds) => {
-    if (currentUser?.role === 'seller') {
-      alert("Permission Denied: Only Admin can modify product discounts.");
-      return;
-    }
     applyBulkDiscount(productIds, { type: 'percent', value: 0 });
   };
 
-  const completeTransaction = ({ payType, paidAmount, note, cardLast4, trxId }) => {
+  const completeTransaction = ({ 
+    payType, 
+    paidAmount, 
+    note, 
+    cardLast4, 
+    trxId, 
+    customerPhone = '', 
+    customerName = 'Walk-in Customer',
+    redeemedPoints = 0,
+    pointsDiscount = 0,
+    includeBag = false,
+    bagFee = 20
+  }) => {
     let grossSubtotal = 0;
     let totalDiscountedSubtotal = 0;
-    const totalItemsQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    let totalItemsQty = cart.reduce((sum, item) => sum + item.qty, 0);
 
     const itemsSummary = cart.map((item, idx) => {
       const pricing = getProductPricing(item.product);
@@ -476,6 +588,27 @@ export function AppProvider({ children }) {
       };
     });
 
+    // If customer selected "Bag Koi" -> Yes, add the Shopping Bag item for 20 Taka
+    if (includeBag) {
+      const bagPrice = Number(bagFee) || 20;
+      itemsSummary.push({
+        sl: itemsSummary.length + 1,
+        id: 'item-bag-20',
+        name: 'Shopping Bag (ব্যাগ)',
+        brand: 'Swapno',
+        barcode: 'BAG-20TK',
+        originalPrice: bagPrice,
+        price: bagPrice,
+        discountBadge: null,
+        discountAmount: 0,
+        qty: 1,
+        total: bagPrice
+      });
+      grossSubtotal += bagPrice;
+      totalDiscountedSubtotal += bagPrice;
+      totalItemsQty += 1;
+    }
+
     const itemLevelSavings = grossSubtotal - totalDiscountedSubtotal;
 
     let additionalCartDiscount = 0;
@@ -486,8 +619,11 @@ export function AppProvider({ children }) {
     }
     additionalCartDiscount = Math.min(additionalCartDiscount, totalDiscountedSubtotal);
 
-    const totalDiscountAll = itemLevelSavings + additionalCartDiscount;
-    const netPayablePreTax = totalDiscountedSubtotal - additionalCartDiscount;
+    // Apply loyalty points discount (100 points = 75 Tk)
+    const effectivePointsDiscount = Math.min(Number(pointsDiscount) || 0, Math.max(0, totalDiscountedSubtotal - additionalCartDiscount));
+
+    const totalDiscountAll = itemLevelSavings + additionalCartDiscount + effectivePointsDiscount;
+    const netPayablePreTax = Math.max(0, totalDiscountedSubtotal - additionalCartDiscount - effectivePointsDiscount);
     const vatAmount = (netPayablePreTax * (shopSettings.vatPercentage || 0)) / 100;
     const netAmount = Math.round((netPayablePreTax + vatAmount) * 100) / 100;
 
@@ -498,16 +634,29 @@ export function AppProvider({ children }) {
     const dateStr = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
+    const newInvoiceNo = generateInvoiceNumber();
+
+    // 100 Taka = 1 Point (3 months validity)
+    const earnedPoints = addCustomerPoints(customerPhone, customerName, netAmount, newInvoiceNo);
+
+    // If points were redeemed, deduct from customer ledger
+    if (redeemedPoints > 0) {
+      redeemCustomerPoints(customerPhone, redeemedPoints);
+    }
+
+    const currentPointsInfo = getCustomerPointsInfo(customerPhone);
+
     const newTx = {
       id: `tx-${Date.now()}`,
-      invoiceNo: generateInvoiceNumber(),
+      invoiceNo: newInvoiceNo,
       date: dateStr,
       time: timeStr,
       timestamp: now.getTime(),
       shopId: shopSettings.shopId,
-      servedBy: currentUser ? (currentUser.name || currentUser.userId) : (shopSettings.servedBy || "lipi"),
-      customerId: activeCustomer.id,
-      customerName: activeCustomer.name,
+      servedBy: currentUser ? (currentUser.name || currentUser.userId) : (shopSettings.servedBy || "L61627"),
+      customerId: customerPhone || activeCustomer.id,
+      customerName: customerName || activeCustomer.name,
+      customerPhone: customerPhone,
       items: itemsSummary,
       totalItemsQty,
       subtotal: grossSubtotal,
@@ -520,11 +669,10 @@ export function AppProvider({ children }) {
       changeAmount,
       cardLast4,
       trxId,
-      pointsThisInvoice: Math.floor(netAmount / 100),
-      previousPointBalance: activeCustomer.points || 0,
-      redeemPoint: 0
+      pointsThisInvoice: earnedPoints,
+      previousPointBalance: currentPointsInfo.validPoints,
+      redeemPoint: redeemedPoints
     };
-
 
     setProducts(prevProducts =>
       prevProducts.map(prod => {
@@ -546,25 +694,59 @@ export function AppProvider({ children }) {
   };
 
   const syncProductToSupabase = async (p) => {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) return { success: false, error: 'Offline' };
     try {
-      await supabase.from('products').upsert({
-        id: p.id,
-        sl_no: p.slNo,
-        sku: p.sku,
-        barcode: p.barcode,
+      const payload = {
+        id: String(p.id),
+        sl_no: p.slNo ? Number(p.slNo) : null,
+        sku: p.sku || `PRD-${p.id}`,
+        barcode: String(p.barcode),
         name: p.name,
-        brand: p.brand,
-        category: p.category,
-        price: p.price,
-        cost_price: p.costPrice,
-        stock: p.stock,
-        unit: p.unit,
-        discount: p.discount,
-        image: p.image
-      });
+        category: p.category || 'General Grocery',
+        price: Number(p.price) || 0,
+        cost_price: Number(p.costPrice) || 0,
+        stock: Number(p.stock) || 0,
+        unit: p.unit || 'pcs',
+        image: p.image || ''
+      };
+      const { data, error } = await supabase.from('products').upsert(payload);
+      if (error) {
+        console.error("Supabase product upsert error:", error);
+        return { success: false, error };
+      }
+      return { success: true, data };
     } catch (err) {
       console.warn("Supabase product upsert skipped:", err);
+      return { success: false, error: err };
+    }
+  };
+
+  const syncAllProductsToSupabase = async (prodList = products) => {
+    if (!navigator.onLine) return { success: false, error: 'Offline' };
+    try {
+      const payloads = prodList.map((p, idx) => ({
+        id: String(p.id),
+        sl_no: p.slNo ? Number(p.slNo) : idx + 1,
+        sku: p.sku || `PRD-${String(idx + 1).padStart(4, '0')}`,
+        barcode: String(p.barcode),
+        name: p.name,
+        category: p.category || 'General Grocery',
+        price: Number(p.price) || 0,
+        cost_price: Number(p.costPrice) || 0,
+        stock: Number(p.stock) || 0,
+        unit: p.unit || 'pcs',
+        image: p.image || ''
+      }));
+
+      const { data, error } = await supabase.from('products').upsert(payloads);
+      if (error) {
+        console.error("Error syncing all products to Supabase:", error);
+        return { success: false, error };
+      }
+      return { success: true, count: payloads.length };
+    } catch (err) {
+      console.error("Sync all products failed:", err);
+      return { success: false, error: err };
     }
   };
 
@@ -580,6 +762,9 @@ export function AppProvider({ children }) {
         shop_id: tx.shopId,
         served_by: tx.servedBy,
         customer_name: tx.customerName,
+        customer_phone: tx.customerPhone || tx.customerId,
+        points_earned: tx.pointsThisInvoice || 0,
+        points_redeemed: tx.redeemPoint || 0,
         items: tx.items,
         total_items_qty: tx.totalItemsQty,
         subtotal: tx.subtotal,
@@ -595,18 +780,34 @@ export function AppProvider({ children }) {
     }
   };
 
-  const addProduct = (newProduct) => {
-    if (currentUser?.role === 'seller') {
-      alert("Permission Denied: Only Admin can add new products to the catalog.");
-      return null;
+  const syncCustomerToSupabase = async (phone, customerData) => {
+    if (!navigator.onLine || !phone) return;
+    try {
+      const now = Date.now();
+      const validEntries = (customerData.pointsLedger || []).filter(e => e.expiresAt > now && e.points > 0);
+      const totalPoints = validEntries.reduce((sum, e) => sum + e.points, 0);
+
+      await supabase.from('customers').upsert({
+        phone: String(phone).trim(),
+        name: customerData.name || 'Customer',
+        total_valid_points: totalPoints,
+        points_ledger: validEntries,
+        updated_at: new Date().toISOString()
+      });
+    } catch (err) {
+      console.warn("Supabase customer points upsert skipped:", err);
     }
+  };
+
+  const addProduct = async (newProduct) => {
     const nextSl = products.length + 1;
     const created = {
       ...newProduct,
       slNo: nextSl,
-      id: `prod-${Date.now()}`,
+      id: newProduct.id || `prod-${Date.now()}`,
       sku: newProduct.sku || `PRD-${String(nextSl).padStart(4, '0')}`,
       brand: newProduct.brand || 'General',
+      category: newProduct.category || 'General Grocery',
       stock: Number(newProduct.stock) || 0,
       price: Number(newProduct.price) || 0,
       costPrice: Number(newProduct.costPrice) || 0,
@@ -615,35 +816,207 @@ export function AppProvider({ children }) {
       image: newProduct.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'
     };
     setProducts(prev => [...prev, created]);
-    syncProductToSupabase(created);
-    return created;
+    const syncRes = await syncProductToSupabase(created);
+    return { product: created, syncResult: syncRes };
   };
 
-  const updateProduct = (id, updatedFields) => {
-    if (currentUser?.role === 'seller') {
-      alert("Permission Denied: Only Admin can update products or manually edit stock quantities.");
-      return;
-    }
+  const updateProduct = async (id, updatedFields) => {
+    let updatedObj = null;
     setProducts(prev =>
       prev.map(p => {
         if (p.id === id) {
-          const updated = { ...p, ...updatedFields };
+          updatedObj = { ...p, ...updatedFields };
+          syncProductToSupabase(updatedObj);
+          return updatedObj;
+        }
+        return p;
+      })
+    );
+    return updatedObj;
+  };
+
+  const deleteProduct = (id) => {
+    // Requirements: No products can be removed/deleted forever from website/database.
+    // Instead, if deletion/removal is attempted, set quantity/stock to 0.
+    setProducts(prev =>
+      prev.map(p => {
+        if (p.id === id) {
+          const updated = { ...p, stock: 0 };
           syncProductToSupabase(updated);
           return updated;
         }
         return p;
       })
     );
+    alert("Notice: Products cannot be deleted permanently from the database. Stock has been set to 0 (Out of Stock).");
   };
 
-  const deleteProduct = (id) => {
-    if (currentUser?.role === 'seller') {
-      alert("Permission Denied: Only Admin can delete products from inventory.");
-      return;
+  // Customer Points Functions (100 Tk = 1 Pt, 3 months validity, 100 Pts = 75 Tk discount)
+  const getCustomerPointsInfo = (phone) => {
+    const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+    if (!cleanPhone || cleanPhone.length < 5) {
+      return { found: false, validPoints: 0, discountTaka: 0, customerName: '', ledger: [] };
     }
-    setProducts(prev => prev.filter(p => p.id !== id));
-    if (navigator.onLine) {
-      supabase.from('products').delete().eq('id', id).then(() => { }).catch(() => { });
+    const customer = customers[cleanPhone];
+    if (!customer) {
+      return { found: false, validPoints: 0, discountTaka: 0, customerName: '', ledger: [] };
+    }
+    const now = Date.now();
+    const validEntries = (customer.pointsLedger || []).filter(e => e.expiresAt > now && e.points > 0);
+    const totalPoints = validEntries.reduce((sum, e) => sum + e.points, 0);
+    // 100 points = 75 Taka discount (0.75 Tk per point)
+    const discountTaka = Math.round(totalPoints * 0.75 * 100) / 100;
+    return {
+      found: true,
+      phone: cleanPhone,
+      customerName: customer.name || 'Customer',
+      validPoints: totalPoints,
+      discountTaka,
+      ledger: validEntries
+    };
+  };
+
+  const addCustomerPoints = (phone, name, totalAmount, invoiceNo) => {
+    const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+    if (!cleanPhone || cleanPhone.length < 5) return 0;
+
+    // 100 Taka purchase = 1 point
+    const earnedPoints = Math.floor(Number(totalAmount || 0) / 100);
+    if (earnedPoints <= 0) return 0;
+
+    const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+    const newEntry = {
+      id: `pt-${Date.now()}`,
+      points: earnedPoints,
+      earnedAt: Date.now(),
+      expiresAt: Date.now() + THREE_MONTHS_MS,
+      invoiceNo
+    };
+
+    setCustomers(prev => {
+      const existing = prev[cleanPhone] || { phone: cleanPhone, name: name || 'Customer', pointsLedger: [] };
+      const updatedCust = {
+        ...existing,
+        name: name || existing.name,
+        pointsLedger: [...(existing.pointsLedger || []), newEntry]
+      };
+      syncCustomerToSupabase(cleanPhone, updatedCust);
+      return {
+        ...prev,
+        [cleanPhone]: updatedCust
+      };
+    });
+
+    return earnedPoints;
+  };
+
+  const redeemCustomerPoints = (phone, pointsToRedeem) => {
+    const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+    const customer = customers[cleanPhone];
+    if (!customer || !pointsToRedeem || pointsToRedeem <= 0) return 0;
+
+    let remainingToDeduct = pointsToRedeem;
+    const now = Date.now();
+
+    const updatedLedger = (customer.pointsLedger || []).map(entry => {
+      if (entry.expiresAt <= now || remainingToDeduct <= 0) return entry;
+      if (entry.points <= remainingToDeduct) {
+        remainingToDeduct -= entry.points;
+        return { ...entry, points: 0 };
+      } else {
+        const updatedPoints = entry.points - remainingToDeduct;
+        remainingToDeduct = 0;
+        return { ...entry, points: updatedPoints };
+      }
+    }).filter(e => e.points > 0);
+
+    const updatedCust = {
+      ...customer,
+      pointsLedger: updatedLedger
+    };
+
+    setCustomers(prev => ({
+      ...prev,
+      [cleanPhone]: updatedCust
+    }));
+
+    syncCustomerToSupabase(cleanPhone, updatedCust);
+
+    // 100 points = 75 Taka discount (0.75 Tk per point)
+    return Math.round(pointsToRedeem * 0.75 * 100) / 100;
+  };
+
+  // Hold Invoice: Supports up to 5 Multiple Customer Bills (Recall Invoice - 1 to 5)
+  const holdInvoice = (meta = {}) => {
+    if (cart.length === 0) {
+      alert("Current invoice has no items to hold.");
+      return null;
+    }
+    if (heldInvoices.length >= 5) {
+      alert("Maximum 5 Recall Invoices reached! Please recall and finish or void an existing held customer bill first.");
+      return null;
+    }
+
+    // Find first available slot between 1 and 5
+    const existingSlots = heldInvoices.map(h => h.slot);
+    let chosenSlot = 1;
+    for (let s = 1; s <= 5; s++) {
+      if (!existingSlots.includes(s)) {
+        chosenSlot = s;
+        break;
+      }
+    }
+
+    const itemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
+    let billTotal = 0;
+    cart.forEach(item => {
+      const p = getProductPricing(item.product);
+      billTotal += p.finalPrice * item.qty;
+    });
+
+    const newHold = {
+      slot: chosenSlot,
+      title: `Recall Invoice - ${chosenSlot}`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      itemsCount,
+      total: billTotal,
+      cart: [...cart],
+      cartDiscount,
+      customerPhone: meta.customerPhone || '',
+      customerName: meta.customerName || `Customer (Slot ${chosenSlot})`
+    };
+
+    setHeldInvoices(prev => [...prev, newHold].sort((a, b) => a.slot - b.slot));
+    clearCart();
+    return newHold;
+  };
+
+  // Recall Invoice: Restores specified slot (1 to 5) back to active bill
+  const recallInvoice = (slotNumber) => {
+    if (heldInvoices.length === 0) {
+      alert("No held invoices available.");
+      return null;
+    }
+
+    const target = heldInvoices.find(h => h.slot === Number(slotNumber)) || heldInvoices[0];
+    if (!target) {
+      alert("No held invoice found in Recall Slot: " + slotNumber);
+      return null;
+    }
+
+    // Restore to cart
+    setCart(target.cart);
+    if (target.cartDiscount) setCartDiscount(target.cartDiscount);
+    // Release the slot
+    setHeldInvoices(prev => prev.filter(h => h.slot !== target.slot));
+    return target;
+  };
+
+  const reprintLastInvoice = () => {
+    if (transactions.length > 0) {
+      setSelectedReceipt(transactions[0]);
+    } else {
+      alert("No recent invoices found to reprint.");
     }
   };
 
@@ -681,6 +1054,14 @@ export function AppProvider({ children }) {
         updateCartQty,
         removeFromCart,
         clearCart,
+        heldInvoices,
+        holdInvoice,
+        recallInvoice,
+        reprintLastInvoice,
+        customers,
+        getCustomerPointsInfo,
+        addCustomerPoints,
+        redeemCustomerPoints,
         cartDiscount,
         setCartDiscount,
         activeCustomer,
@@ -694,6 +1075,8 @@ export function AppProvider({ children }) {
         isOnline,
         supabaseStatus,
         syncWithSupabase,
+        syncProductToSupabase,
+        syncAllProductsToSupabase,
         uploadImageToSupabase,
         compressProductImage,
         SUPABASE_SETUP_SQL,

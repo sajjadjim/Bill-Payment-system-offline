@@ -37,13 +37,31 @@ export default function Navbar({ onOpenAddProduct }) {
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  // Role-Based Navigation items: Seller only gets Billing & Sales
+  // Global hotkeys for POS [F1] and Products [F2]
+  useEffect(() => {
+    const handleKeys = (e) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setActiveTab('pos');
+      } else if (e.key === 'F2') {
+        e.preventDefault();
+        setActiveTab('products');
+      } else if (e.key === 'F3') {
+        e.preventDefault();
+        setActiveTab('sales');
+      }
+    };
+    window.addEventListener('keydown', handleKeys);
+    return () => window.removeEventListener('keydown', handleKeys);
+  }, [setActiveTab]);
+
+  // Navigation items: Both POS Counter and Products page are primary
   const allNavItems = [
-    { id: 'pos', label: 'POS Billing', icon: ShoppingCart, badge: totalCartCount > 0 ? totalCartCount : null, roles: ['admin', 'seller'] },
-    { id: 'products', label: 'Products & Serials', icon: Package, roles: ['admin'] },
-    { id: 'sales', label: 'Sales Slips', icon: Receipt, roles: ['admin', 'seller'] },
-    { id: 'architecture', label: 'Tech & Architecture', icon: BookOpen, roles: ['admin'] },
+    { id: 'pos', label: 'POS Terminal [F1]', icon: ShoppingCart, badge: totalCartCount > 0 ? totalCartCount : null, roles: ['admin', 'seller'] },
+    { id: 'products', label: 'Products Catalog [F2]', icon: Package, roles: ['admin', 'seller'] },
+    { id: 'sales', label: 'Sales Slips [F3]', icon: Receipt, roles: ['admin', 'seller'] },
     { id: 'settings', label: 'Store Settings', icon: Settings, roles: ['admin'] },
+    { id: 'architecture', label: 'Tech & Architecture', icon: BookOpen, roles: ['admin'] },
   ];
 
   const visibleNavItems = allNavItems.filter(item => 
@@ -159,54 +177,8 @@ export default function Navbar({ onOpenAddProduct }) {
         })}
       </nav>
 
-      {/* Right meta controls: Quick Add (Admin Only), User Role Badge, Online Status, Sign Out */}
+      {/* Right meta controls: Online Status, Sign Out */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        {/* Only Admin can see + New Product */}
-        {isAdmin && (
-          <button
-            onClick={onOpenAddProduct}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#ecfdf5',
-              color: '#047857',
-              border: '1px solid #a7f3d0',
-              padding: '7px 12px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-            title="Add New Product to Catalog (Admin Only)"
-          >
-            <PlusCircle size={15} />
-            <span>+ New Product</span>
-          </button>
-        )}
-
-        {/* Current User Role Badge */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          background: isAdmin ? '#fef3c7' : '#eff6ff',
-          border: `1px solid ${isAdmin ? '#fde68a' : '#bfdbfe'}`,
-          padding: '6px 11px',
-          borderRadius: '6px',
-          fontSize: '12px',
-          color: isAdmin ? '#92400e' : '#1e40af',
-          fontWeight: 700
-        }}>
-          {isAdmin ? <Shield size={14} color="#d97706" /> : <User size={14} color="#2563eb" />}
-          <span>
-            {isAdmin ? '👑 Admin: ' : '👤 Seller: '}
-            <strong style={{ color: isAdmin ? '#78350f' : '#1e3a8a' }}>
-              {currentUser?.name || currentUser?.userId || "Cashier"}
-            </strong>
-          </span>
-        </div>
-
         {/* Offline / Online badge */}
         <div style={{
           display: 'flex',
