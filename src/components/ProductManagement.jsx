@@ -36,8 +36,11 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
     shopSettings,
     compressProductImage,
     syncWithSupabase,
+    syncAllProductsToSupabase,
     SUPABASE_SETUP_SQL,
-    isAdmin
+    isAdmin,
+    setActiveTab,
+    addToCart
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +49,26 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
   const [editingProduct, setEditingProduct] = useState(null);
   const [barcodePrintProduct, setBarcodePrintProduct] = useState(null);
   const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
+  const [isSyncingToDb, setIsSyncingToDb] = useState(false);
+  const [dbSyncMsg, setDbSyncMsg] = useState(null);
+
+  const handleSyncAllToDb = async () => {
+    setIsSyncingToDb(true);
+    setDbSyncMsg(null);
+    try {
+      const res = await syncAllProductsToSupabase(products);
+      if (res?.success) {
+        setDbSyncMsg(`Success: All ${res.count || products.length} products stored in Supabase Database!`);
+      } else {
+        setDbSyncMsg(`Sync status: ${res?.error?.message || 'Completed'}`);
+      }
+    } catch (e) {
+      setDbSyncMsg(`Sync error: ${e.message}`);
+    } finally {
+      setIsSyncingToDb(false);
+      setTimeout(() => setDbSyncMsg(null), 5000);
+    }
+  };
 
   // Multi-Selection State for Bulk Discounting (Persisted across hard refreshes!)
   const [selectedProductIds, setSelectedProductIds] = useState(() => {
@@ -283,6 +306,27 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            onClick={() => setActiveTab('pos')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#047857',
+              border: 'none',
+              color: '#ffffff',
+              padding: '8px 14px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 2px 5px rgba(4,120,87,0.25)'
+            }}
+            title="Return to POS Billing [F1]"
+          >
+            <span>🛒 ← Return to POS Terminal [F1]</span>
+          </button>
+
           <button
             onClick={() => setIsSqlModalOpen(true)}
             style={{

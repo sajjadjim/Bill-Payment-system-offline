@@ -181,10 +181,21 @@ VALUES
   ('usr-seller-2', 'seller', 'Sales Associate', 'seller123', 'seller')
 ON CONFLICT (user_id) DO NOTHING;
 
--- 4. Enable Public Read & Insert Access (Anonymous POS)
+-- 4. Create Customers Loyalty & Points Table (Keyed by Phone Number)
+CREATE TABLE IF NOT EXISTS public.customers (
+  phone TEXT PRIMARY KEY,
+  name TEXT DEFAULT 'Customer',
+  total_valid_points INTEGER DEFAULT 0,
+  points_ledger JSONB DEFAULT '[]'::jsonb,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 5. Enable Public Read & Insert Access (Anonymous POS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public read on products" ON public.products FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on products" ON public.products FOR INSERT WITH CHECK (true);
@@ -197,5 +208,9 @@ CREATE POLICY "Allow public insert on transactions" ON public.transactions FOR I
 CREATE POLICY "Allow public read on users" ON public.users FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on users" ON public.users FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update on users" ON public.users FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public read on customers" ON public.customers FOR SELECT USING (true);
+CREATE POLICY "Allow public insert on customers" ON public.customers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update on customers" ON public.customers FOR UPDATE USING (true);
 `;
 
