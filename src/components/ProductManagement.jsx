@@ -168,10 +168,6 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
   };
 
   const handleOpenAdd = () => {
-    if (!isAdmin) {
-      alert("Permission Denied: Only Administrator can add new products.");
-      return;
-    }
     setFormData({
       name: '',
       brand: 'General',
@@ -191,10 +187,6 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
   };
 
   const handleOpenEdit = (product) => {
-    if (!isAdmin) {
-      alert("Permission Denied: Only Administrator can edit products or change stock quantities.");
-      return;
-    }
     setFormData({
       name: product.name,
       brand: product.brand || 'General',
@@ -230,7 +222,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
     }
   };
 
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.price) {
       alert("Please provide product name and selling price.");
@@ -243,7 +235,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
     };
 
     if (editingProduct) {
-      updateProduct(editingProduct.id, {
+      await updateProduct(editingProduct.id, {
         name: formData.name,
         brand: formData.brand.trim() || 'General',
         barcode: formData.barcode.trim(),
@@ -255,8 +247,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
         discount: discountObj,
         image: formData.image
       });
+      setDbSyncMsg(`Product "${formData.name}" updated & saved to Database!`);
     } else {
-      addProduct({
+      await addProduct({
         name: formData.name,
         brand: formData.brand.trim() || 'General',
         barcode: formData.barcode.trim(),
@@ -268,11 +261,13 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
         discount: discountObj,
         image: formData.image
       });
+      setDbSyncMsg(`New product "${formData.name}" added & stored to Database!`);
     }
 
     setIsAddModalOpen(false);
     setEditingProduct(null);
     setImageMeta(null);
+    setTimeout(() => setDbSyncMsg(null), 4000);
   };
 
   const handleGenerateBarcode = () => {
@@ -367,33 +362,74 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
             <span>Export Backup</span>
           </button>
 
-          {isAdmin && (
-            <button
-              onClick={handleOpenAdd}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#059669',
-                border: 'none',
-                color: '#ffffff',
-                padding: '9px 18px',
-                borderRadius: '6px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)'
-              }}
-            >
-              <Plus size={17} />
-              <span>+ Add New Product</span>
-            </button>
-          )}
+          <button
+            onClick={handleSyncAllToDb}
+            disabled={isSyncingToDb}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: isSyncingToDb ? '#94a3b8' : '#0284c7',
+              border: 'none',
+              color: '#ffffff',
+              padding: '9px 15px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: isSyncingToDb ? 'wait' : 'pointer',
+              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+            }}
+            title="Upload/Sync all catalog products to Supabase Database"
+          >
+            <Upload size={16} />
+            <span>{isSyncingToDb ? 'Syncing to DB...' : 'Sync All to Database'}</span>
+          </button>
+
+          <button
+            onClick={handleOpenAdd}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: '#059669',
+              border: 'none',
+              color: '#ffffff',
+              padding: '9px 18px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)'
+            }}
+          >
+            <Plus size={17} />
+            <span>+ Add New Product</span>
+          </button>
         </div>
       </div>
 
-      {/* MULTI-PRODUCT BULK DISCOUNT TOOLBAR (Admin Only) */}
-      {isAdmin && (
+      {/* Sync Status Banner */}
+      {dbSyncMsg && (
+        <div style={{
+          background: '#ecfdf5',
+          border: '1.5px solid #059669',
+          color: '#065f46',
+          padding: '10px 16px',
+          borderRadius: '8px',
+          fontWeight: 800,
+          fontSize: '13.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+        }}>
+          <Check size={18} color="#059669" />
+          <span>{dbSyncMsg}</span>
+        </div>
+      )}
+
+      {/* MULTI-PRODUCT BULK DISCOUNT TOOLBAR */}
+      {(selectedProductIds.length > 0 || isAdmin) && (
         <div style={{
         background: selectedProductIds.length > 0 ? '#ecfdf5' : '#ffffff',
         border: selectedProductIds.length > 0 ? '1.5px solid #059669' : '1px solid #e2e8f0',
@@ -813,133 +849,101 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                         Tk {pricing.finalPrice.toFixed(0)}
                       </td>
 
-                      {/* Stock Quantity (Admin Can Manually Edit, Seller Read-Only) */}
+                      {/* Stock Quantity */}
                       <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                        {isAdmin ? (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                            <button
-                              type="button"
-                              onClick={() => updateProduct(p.id, { stock: Math.max(0, p.stock - 1) })}
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                borderRadius: '4px',
-                                border: '1px solid #cbd5e1',
-                                background: '#f8fafc',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 800,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#475569'
-                              }}
-                              title="Decrease Stock Quantity (-1)"
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newQty = prompt(`Edit Stock Quantity for ${p.name}:`, p.stock);
-                                if (newQty !== null && !isNaN(Number(newQty))) {
-                                  updateProduct(p.id, { stock: Math.max(0, parseInt(newQty, 10)) });
-                                }
-                              }}
-                              style={{
-                                background: isLow ? '#fee2e2' : '#ecfdf5',
-                                color: isLow ? '#dc2626' : '#059669',
-                                border: `1px solid ${isLow ? '#fecaca' : '#a7f3d0'}`,
-                                padding: '3px 8px',
-                                borderRadius: '4px',
-                                fontSize: '11.5px',
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                                minWidth: '32px'
-                              }}
-                              title="Admin: Click to manually set stock quantity"
-                            >
-                              {p.stock}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => updateProduct(p.id, { stock: p.stock + 1 })}
-                              style={{
-                                width: '22px',
-                                height: '22px',
-                                borderRadius: '4px',
-                                border: '1px solid #cbd5e1',
-                                background: '#f8fafc',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 800,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#475569'
-                              }}
-                              title="Increase Stock Quantity (+1)"
-                            >
-                              +
-                            </button>
-                          </div>
-                        ) : (
-                          <span style={{
-                            background: isLow ? '#fee2e2' : '#ecfdf5',
-                            color: isLow ? '#dc2626' : '#059669',
-                            border: `1px solid ${isLow ? '#fecaca' : '#a7f3d0'}`,
-                            padding: '2px 7px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 700
-                          }}>
-                            {p.stock}
-                          </span>
-                        )}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => updateProduct(p.id, { stock: Math.max(0, p.stock - 1) })}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '4px',
+                              border: '1px solid #cbd5e1',
+                              background: '#f8fafc',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#475569'
+                            }}
+                            title="Decrease Stock (-1)"
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newQty = prompt(`Edit Stock Quantity for ${p.name}:`, p.stock);
+                              if (newQty !== null && !isNaN(Number(newQty))) {
+                                updateProduct(p.id, { stock: Math.max(0, parseInt(newQty, 10)) });
+                              }
+                            }}
+                            style={{
+                              background: p.stock <= 0 ? '#fee2e2' : isLow ? '#fef3c7' : '#ecfdf5',
+                              color: p.stock <= 0 ? '#dc2626' : isLow ? '#d97706' : '#059669',
+                              border: `1px solid ${p.stock <= 0 ? '#fecaca' : isLow ? '#fde68a' : '#a7f3d0'}`,
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11.5px',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              minWidth: '40px'
+                            }}
+                            title="Click to set stock quantity (0 = Out of Stock)"
+                          >
+                            {p.stock <= 0 ? '0 (স্টক শেষ)' : p.stock}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateProduct(p.id, { stock: p.stock + 1 })}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '4px',
+                              border: '1px solid #cbd5e1',
+                              background: '#f8fafc',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#475569'
+                            }}
+                            title="Increase Stock (+1)"
+                          >
+                            +
+                          </button>
+                        </div>
                       </td>
 
-                      {/* Actions: Admin Only */}
+                      {/* Actions: Edit / Update (Permanent - Cannot Delete) */}
                       <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                        {isAdmin ? (
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                            <button
-                              onClick={() => handleOpenEdit(p)}
-                              style={{
-                                background: '#f1f5f9',
-                                border: '1px solid #cbd5e1',
-                                color: '#334155',
-                                padding: '5px 8px',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                              }}
-                              title="Edit Product Details & Discount (Admin)"
-                            >
-                              <Edit3 size={14} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Are you sure you want to delete ${p.name}?`)) {
-                                  deleteProduct(p.id);
-                                }
-                              }}
-                              style={{
-                                background: '#fee2e2',
-                                border: '1px solid #fecaca',
-                                color: '#dc2626',
-                                padding: '5px 8px',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                              }}
-                              title="Delete Product (Admin)"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
-                            Read Only
-                          </span>
-                        )}
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleOpenEdit(p)}
+                            style={{
+                              background: '#eff6ff',
+                              border: '1.5px solid #bfdbfe',
+                              color: '#1d4ed8',
+                              padding: '6px 12px',
+                              borderRadius: '5px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              fontWeight: 700,
+                              fontSize: '12px'
+                            }}
+                            title="Edit Product Details, Price, or Stock"
+                          >
+                            <Edit3 size={14} />
+                            <span>Edit / আপডেট</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
 
