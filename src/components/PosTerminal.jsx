@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { getProductPricing } from '../utils/pricing';
+import { supabase } from '../lib/supabaseClient';
 import { 
   Barcode, 
   Search, 
@@ -47,6 +48,8 @@ export default function PosTerminal() {
   } = useApp();
 
   const [barcodeInput, setBarcodeInput] = useState('');
+  const [dbSuggestions, setDbSuggestions] = useState([]);
+  const [isSearchingDb, setIsSearchingDb] = useState(false);
   const [selectedRowIndex, setSelectedRowIndex] = useState(0);
   const [selectedTender, setSelectedTender] = useState('Cash');
   const [cashReceivedInput, setCashReceivedInput] = useState('');
@@ -211,26 +214,90 @@ export default function PosTerminal() {
     } catch {}
   };
 
-  // Search suggestions
+  // Real-time Supabase Database barcode search
+  useEffect(() => {
+    const q = barcodeInput.trim();
+    if (!q || q.length < 1) {
+      setDbSuggestions([]);
+      setIsSearchingDb(false);
+      return;
+    }
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      if (!navigator.onLine) return;
+      try {
+        setIsSearchingDb(true);
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .or(`barcode.ilike.%${q}%,name.ilike.%${q}%,brand.ilike.%${q}%,sku.ilike.%${q}%`)
+          .limit(8);
+
+        if (isMounted && !error && data) {
+          const mapped = data.map((item, idx) => ({
+            id: item.id,
+            slNo: item.sl_no || idx + 1,
+            sku: item.sku || `PRD-${item.id}`,
+            barcode: item.barcode,
+            name: item.name,
+            brand: item.brand || 'General',
+            category: item.category || 'General Grocery',
+            description: item.description || '',
+            price: Number(item.price),
+            costPrice: Number(item.cost_price || 0),
+            stock: Number(item.stock || 0),
+            unit: item.unit || 'pcs',
+            discount: item.discount || { type: 'percent', value: 0 },
+            image: item.image
+          }));
+          setDbSuggestions(mapped);
+        }
+      } catch (err) {
+        console.warn("DB search error:", err);
+      } finally {
+        if (isMounted) setIsSearchingDb(false);
+      }
+    }, 150);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [barcodeInput]);
+
+  // Search suggestions: searches local products + Supabase database system
   const suggestions = useMemo(() => {
     const q = barcodeInput.trim().toLowerCase();
-    if (!q || q.length < 2) return [];
-    return products.filter(p => 
-      p.barcode.toLowerCase().includes(q) ||
-      p.name.toLowerCase().includes(q) ||
-      (p.brand && p.brand.toLowerCase().includes(q)) ||
-      String(p.slNo) === q
-    ).slice(0, 6);
-  }, [barcodeInput, products]);
+    if (!q || q.length < 1) return [];
 
-  // Barcode / Code submit
-  const handleBarcodeSubmit = (e) => {
+    const localMatches = products.filter(p => 
+      p.barcode?.toLowerCase().includes(q) ||
+      p.name?.toLowerCase().includes(q) ||
+      (p.brand && p.brand?.toLowerCase().includes(q)) ||
+      (p.sku && p.sku?.toLowerCase().includes(q)) ||
+      String(p.slNo) === q
+    );
+
+    // Merge database results, preventing duplicates
+    const combined = [...localMatches];
+    dbSuggestions.forEach(dbItem => {
+      if (!combined.some(c => c.id === dbItem.id || c.barcode === dbItem.barcode)) {
+        combined.push(dbItem);
+      }
+    });
+
+    return combined.slice(0, 8);
+  }, [barcodeInput, products, dbSuggestions]);
+
+  // Barcode / Code submit (queries local + database system asynchronously)
+  const handleBarcodeSubmit = async (e) => {
     e?.preventDefault();
     const query = barcodeInput.trim();
     if (!query) return;
 
     setShowSuggestions(false);
-    const matched = findProductByBarcodeOrSerial(query);
+    const matched = await findProductByBarcodeOrSerial(query);
 
     if (matched) {
       addToCart(matched, 1);
@@ -651,8 +718,8 @@ export default function PosTerminal() {
               </button>
             </div>
 
-            {/* Autocomplete Dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
+            {/* Autocomplete Dropdown - Real-time Barcode Search from Database */}
+            {showSuggestions && barcodeInput.trim().length > 0 && (
               <div style={{
                 position: 'absolute',
                 top: '100%',
@@ -661,38 +728,81 @@ export default function PosTerminal() {
                 zIndex: 100,
                 background: '#ffffff',
                 border: '1.5px solid #15803d',
-                boxShadow: '0 8px 16px rgba(0,0,0,0.25)',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.25)',
                 borderRadius: '0 0 6px 6px',
-                maxHeight: '260px',
+                maxHeight: '320px',
                 overflowY: 'auto'
               }}>
-                {suggestions.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => handleSelectSuggestion(p)}
-                    style={{
-                      padding: '8px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderBottom: '1px solid #e2e8f0',
-                      cursor: 'pointer',
-                      fontSize: '13.5px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
-                  >
-                    <div>
-                      <strong style={{ color: '#0f172a' }}>{p.name}</strong>
-                      <span style={{ marginLeft: '10px', color: '#15803d', fontFamily: 'monospace', fontSize: '13px' }}>
-                        [{p.barcode}]
-                      </span>
-                    </div>
-                    <div style={{ fontWeight: 800, color: '#15803d', fontFamily: 'monospace', fontSize: '14px' }}>
-                      Tk {p.price.toFixed(2)}
-                    </div>
+                {suggestions.length > 0 ? (
+                  suggestions.map((p) => {
+                    const pricing = getProductPricing(p);
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSelectSuggestion(p)}
+                        style={{
+                          padding: '8px 12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          borderBottom: '1px solid #e2e8f0',
+                          cursor: 'pointer',
+                          fontSize: '13.5px',
+                          transition: 'background 0.1s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {p.image && (
+                            <img
+                              src={p.image}
+                              alt=""
+                              style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '4px', background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                            />
+                          )}
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <strong style={{ color: '#0f172a' }}>{p.name}</strong>
+                              {p.brand && (
+                                <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#15803d', background: '#f0fdf4', padding: '1px 6px', borderRadius: '3px', border: '1px solid #bbf7d0' }}>
+                                  {p.brand}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#64748b', fontFamily: 'monospace', marginTop: '2px' }}>
+                              Barcode: <span style={{ color: '#15803d', fontWeight: 700 }}>{p.barcode}</span>
+                              {p.sku && <span> | SKU: {p.sku}</span>}
+                              {p.stock !== undefined && <span style={{ color: p.stock > 0 ? '#15803d' : '#dc2626' }}> | Stock: {p.stock}</span>}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 800, color: '#15803d', fontFamily: 'monospace', fontSize: '15px' }}>
+                            Tk {pricing.finalPrice.toFixed(2)}
+                          </div>
+                          {pricing.hasDiscount && (
+                            <span style={{ fontSize: '11px', color: '#dc2626', textDecoration: 'line-through' }}>
+                              Tk {pricing.originalPrice.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ padding: '14px 16px', color: '#64748b', fontSize: '13px', textAlign: 'center' }}>
+                    {isSearchingDb ? (
+                      <span style={{ color: '#15803d', fontWeight: 700 }}>🔍 Searching database system for "{barcodeInput}"...</span>
+                    ) : (
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>No product found in database for "{barcodeInput}"</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '3px' }}>Press <kbd style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '3px', border: '1px solid #cbd5e1' }}>Enter ↵</kbd> to quick-register as a new item.</div>
+                      </div>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </form>

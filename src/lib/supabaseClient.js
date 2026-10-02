@@ -229,17 +229,33 @@ ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public read on products" ON public.products;
+DROP POLICY IF EXISTS "Allow public insert on products" ON public.products;
+DROP POLICY IF EXISTS "Allow public update on products" ON public.products;
+DROP POLICY IF EXISTS "Allow public delete on products" ON public.products;
+
 CREATE POLICY "Allow public read on products" ON public.products FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on products" ON public.products FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update on products" ON public.products FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete on products" ON public.products FOR DELETE USING (true);
 
+DROP POLICY IF EXISTS "Allow public read on transactions" ON public.transactions;
+DROP POLICY IF EXISTS "Allow public insert on transactions" ON public.transactions;
+
 CREATE POLICY "Allow public read on transactions" ON public.transactions FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on transactions" ON public.transactions FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public read on users" ON public.users;
+DROP POLICY IF EXISTS "Allow public insert on users" ON public.users;
+DROP POLICY IF EXISTS "Allow public update on users" ON public.users;
 
 CREATE POLICY "Allow public read on users" ON public.users FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on users" ON public.users FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update on users" ON public.users FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Allow public read on customers" ON public.customers;
+DROP POLICY IF EXISTS "Allow public insert on customers" ON public.customers;
+DROP POLICY IF EXISTS "Allow public update on customers" ON public.customers;
 
 CREATE POLICY "Allow public read on customers" ON public.customers FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on customers" ON public.customers FOR INSERT WITH CHECK (true);
