@@ -260,11 +260,29 @@ export default function SalesHistory() {
                       </td>
 
                       <td style={{ padding: '10px 14px' }}>
-                        <div style={{ color: '#0f172a', fontWeight: 700 }}>
-                          {tx.customerName || 'Walk-in'}
+                        {tx.customerPhone ? (
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#f0fdf4',
+                            border: '1px solid #bbf7d0',
+                            color: '#15803d',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            fontWeight: 800,
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '12px',
+                            marginBottom: '2px'
+                          }}>
+                            <span>📞 {tx.customerPhone}</span>
+                          </div>
+                        ) : null}
+                        <div style={{ color: '#0f172a', fontWeight: 600, fontSize: '12.5px' }}>
+                          {tx.customerName || 'Customer'}
                         </div>
                         <span style={{ fontSize: '11px', color: '#64748b' }}>
-                          By: {tx.servedBy || 'lipi'}
+                          By: {tx.servedBy || 'Cashier'}
                         </span>
                       </td>
 

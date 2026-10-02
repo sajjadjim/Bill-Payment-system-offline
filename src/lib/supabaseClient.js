@@ -160,6 +160,9 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   shop_id TEXT,
   served_by TEXT,
   customer_name TEXT,
+  customer_phone TEXT,
+  points_earned INTEGER DEFAULT 0,
+  points_redeemed INTEGER DEFAULT 0,
   items JSONB,
   total_items_qty NUMERIC(10, 2),
   subtotal NUMERIC(10, 2),
@@ -171,6 +174,11 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   change_amount NUMERIC(10, 2),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- Ensure customer_phone and points columns exist on existing transactions table
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS points_earned INTEGER DEFAULT 0;
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS points_redeemed INTEGER DEFAULT 0;
 
 -- 3. Create Users / Cashiers Table (RBAC for Admin & Seller)
 CREATE TABLE IF NOT EXISTS public.users (
