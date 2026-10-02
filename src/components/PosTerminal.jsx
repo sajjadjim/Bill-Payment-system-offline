@@ -216,7 +216,7 @@ export default function PosTerminal() {
 
   // Real-time Supabase Database barcode search
   useEffect(() => {
-    const q = barcodeInput.trim();
+    const q = (barcodeInput || '').trim();
     if (!q || q.length < 1) {
       setDbSuggestions([]);
       setIsSearchingDb(false);
@@ -228,28 +228,31 @@ export default function PosTerminal() {
       if (!navigator.onLine) return;
       try {
         setIsSearchingDb(true);
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .or(`barcode.ilike.%${q}%,name.ilike.%${q}%,brand.ilike.%${q}%,sku.ilike.%${q}%`)
-          .limit(8);
+        const safeQ = q.replace(/[,()]/g, '');
+        let queryBuilder = supabase.from('products').select('*');
+        if (/^\d+$/.test(safeQ)) {
+          queryBuilder = queryBuilder.or(`barcode.eq.${safeQ},barcode.ilike.%${safeQ}%,sku.ilike.%${safeQ}%`);
+        } else {
+          queryBuilder = queryBuilder.or(`name.ilike.%${safeQ}%,brand.ilike.%${safeQ}%,barcode.ilike.%${safeQ}%`);
+        }
+        const { data, error } = await queryBuilder.limit(8);
 
         if (isMounted && !error && data) {
           const mapped = data.map((item, idx) => ({
-            id: item.id,
+            id: String(item.id),
             slNo: item.sl_no || idx + 1,
             sku: item.sku || `PRD-${item.id}`,
-            barcode: item.barcode,
-            name: item.name,
+            barcode: String(item.barcode || ''),
+            name: item.name || '',
             brand: item.brand || 'General',
             category: item.category || 'General Grocery',
             description: item.description || '',
-            price: Number(item.price),
+            price: Number(item.price) || 0,
             costPrice: Number(item.cost_price || 0),
             stock: Number(item.stock || 0),
             unit: item.unit || 'pcs',
             discount: item.discount || { type: 'percent', value: 0 },
-            image: item.image
+            image: item.image || ''
           }));
           setDbSuggestions(mapped);
         }
@@ -268,21 +271,24 @@ export default function PosTerminal() {
 
   // Search suggestions: searches local products + Supabase database system
   const suggestions = useMemo(() => {
-    const q = barcodeInput.trim().toLowerCase();
+    const q = (barcodeInput || '').trim().toLowerCase();
     if (!q || q.length < 1) return [];
 
-    const localMatches = products.filter(p => 
-      p.barcode?.toLowerCase().includes(q) ||
-      p.name?.toLowerCase().includes(q) ||
-      (p.brand && p.brand?.toLowerCase().includes(q)) ||
-      (p.sku && p.sku?.toLowerCase().includes(q)) ||
-      String(p.slNo) === q
-    );
+    const localMatches = (products || []).filter(p => {
+      if (!p) return false;
+      const b = String(p.barcode || '').toLowerCase();
+      const n = String(p.name || '').toLowerCase();
+      const br = String(p.brand || '').toLowerCase();
+      const sku = String(p.sku || '').toLowerCase();
+      const sl = String(p.slNo || '');
+      return b.includes(q) || n.includes(q) || br.includes(q) || sku.includes(q) || sl === q;
+    });
 
     // Merge database results, preventing duplicates
     const combined = [...localMatches];
     dbSuggestions.forEach(dbItem => {
-      if (!combined.some(c => c.id === dbItem.id || c.barcode === dbItem.barcode)) {
+      const dbBarcode = String(dbItem.barcode || '');
+      if (!combined.some(c => String(c.id) === String(dbItem.id) || String(c.barcode || '') === dbBarcode)) {
         combined.push(dbItem);
       }
     });
@@ -292,34 +298,41 @@ export default function PosTerminal() {
 
   // Barcode / Code submit (queries local + database system asynchronously)
   const handleBarcodeSubmit = async (e) => {
-    e?.preventDefault();
-    const query = barcodeInput.trim();
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
+    const query = (barcodeInput || '').trim();
     if (!query) return;
 
-    setShowSuggestions(false);
-    const matched = await findProductByBarcodeOrSerial(query);
+    try {
+      setShowSuggestions(false);
+      const matched = await findProductByBarcodeOrSerial(query);
 
-    if (matched) {
-      addToCart(matched, 1);
-      playScannerBeep(1350);
-      setScanFeedback({ type: 'success', message: `Added [${matched.barcode}] ${matched.name}` });
-      setBarcodeInput('');
-      setSelectedRowIndex(cart.length);
-    } else {
-      playScannerBeep(450);
-      setUnknownBarcodePrompt({
-        barcode: query,
-        name: '',
-        brand: 'General',
-        price: '',
-        qty: '1'
-      });
-      setScanFeedback({ type: 'error', message: `Unrecognized Barcode: "${query}". Quick-registering...` });
-      setBarcodeInput('');
+      if (matched) {
+        addToCart(matched, 1);
+        playScannerBeep(1350);
+        setScanFeedback({ type: 'success', message: `Added [${matched.barcode}] ${matched.name}` });
+        setBarcodeInput('');
+        setSelectedRowIndex(cart.length);
+      } else {
+        playScannerBeep(450);
+        setUnknownBarcodePrompt({
+          barcode: query,
+          name: '',
+          brand: 'General',
+          price: '',
+          qty: '1'
+        });
+        setScanFeedback({ type: 'error', message: `Unrecognized Barcode: "${query}". Quick-registering...` });
+        setBarcodeInput('');
+      }
+    } catch (err) {
+      console.error("Barcode processing error:", err);
+    } finally {
+      setTimeout(() => setScanFeedback(null), 3000);
+      setTimeout(() => barcodeInputRef.current?.focus(), 50);
     }
-
-    setTimeout(() => setScanFeedback(null), 3000);
-    setTimeout(() => barcodeInputRef.current?.focus(), 50);
   };
 
   // Select suggestion
@@ -659,7 +672,14 @@ export default function PosTerminal() {
         
         {/* Left: Yellow Barcode / Item Code Box (High-Visibility Font) */}
         <div style={{ flex: '1.2', minWidth: '320px', position: 'relative' }}>
-          <form onSubmit={handleBarcodeSubmit} style={{ width: '100%', position: 'relative' }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleBarcodeSubmit(e);
+            }}
+            style={{ width: '100%', position: 'relative' }}
+          >
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{
                 background: '#15803d',
@@ -684,7 +704,14 @@ export default function PosTerminal() {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                placeholder="Scan or type Barcode / Code (2603029, 2704597, 2817974)..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleBarcodeSubmit(e);
+                  }
+                }}
+                placeholder="Scan Product Code or Barcode"
                 style={{
                   flex: 1,
                   background: '#fffde7', // High visibility yellow
@@ -701,7 +728,12 @@ export default function PosTerminal() {
               />
 
               <button
-                type="submit"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBarcodeSubmit(e);
+                }}
                 style={{
                   marginLeft: '6px',
                   background: '#15803d',

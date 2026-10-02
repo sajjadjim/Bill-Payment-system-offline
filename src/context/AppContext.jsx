@@ -627,20 +627,20 @@ export function AppProvider({ children }) {
         setSupabaseStatus('table_needed');
       } else if (data && data.length > 0) {
         const mapped = data.map((item, idx) => ({
-          id: item.id,
+          id: String(item.id),
           slNo: item.sl_no || idx + 1,
           sku: item.sku || `PRD-${String(idx + 1).padStart(4, '0')}`,
-          barcode: item.barcode,
-          name: item.name,
+          barcode: String(item.barcode || ''),
+          name: item.name || '',
           brand: item.brand || 'General',
           category: item.category || 'General Grocery',
           description: item.description || '',
-          price: Number(item.price),
+          price: Number(item.price) || 0,
           costPrice: Number(item.cost_price || 0),
           stock: Number(item.stock || 0),
           unit: item.unit || 'pcs',
           discount: item.discount || { type: 'percent', value: 0 },
-          image: item.image
+          image: item.image || ''
         }));
         setProducts(prev => {
           const productMap = new Map();
@@ -850,50 +850,60 @@ export function AppProvider({ children }) {
   };
 
   const findProductByBarcodeOrSerial = async (query) => {
-    const clean = (query || '').trim().toLowerCase();
+    const clean = String(query || '').trim().toLowerCase();
     if (!clean) return null;
 
     // 1. Check local products by Serial / SKU
-    const bySl = products.find(p => String(p.slNo) === clean || p.sku?.toLowerCase() === clean);
+    const bySl = products.find(p => String(p.slNo || '') === clean || String(p.sku || '').toLowerCase() === clean);
     if (bySl) return bySl;
 
     // 2. Check local products by Barcode
-    const byBarcode = products.find(p => p.barcode?.toLowerCase() === clean || p.barcode?.endsWith(clean));
+    const byBarcode = products.find(p => {
+      const b = String(p.barcode || '').toLowerCase();
+      return b === clean || b.endsWith(clean);
+    });
     if (byBarcode) return byBarcode;
 
     // 3. Check local products by Name or Brand
-    const byName = products.find(p => p.name?.toLowerCase().includes(clean) || (p.brand && p.brand?.toLowerCase().includes(clean)));
+    const byName = products.find(p => {
+      const n = String(p.name || '').toLowerCase();
+      const br = String(p.brand || '').toLowerCase();
+      return n.includes(clean) || br.includes(clean);
+    });
     if (byName) return byName;
 
     // 4. Query Supabase database system if online
     if (navigator.onLine) {
       try {
-        const { data: dbItems, error } = await supabase
-          .from('products')
-          .select('*')
-          .or(`barcode.eq.${clean},barcode.ilike.%${clean}%,sku.ilike.%${clean}%,name.ilike.%${clean}%`)
-          .limit(1);
+        const safeClean = clean.replace(/[,()]/g, '');
+        let queryBuilder = supabase.from('products').select('*');
+        if (/^\d+$/.test(safeClean)) {
+          queryBuilder = queryBuilder.or(`barcode.eq.${safeClean},barcode.ilike.%${safeClean}%,sku.ilike.%${safeClean}%`);
+        } else {
+          queryBuilder = queryBuilder.or(`name.ilike.%${safeClean}%,brand.ilike.%${safeClean}%,barcode.ilike.%${safeClean}%`);
+        }
+        const { data: dbItems, error } = await queryBuilder.limit(1);
 
         if (!error && dbItems && dbItems.length > 0) {
           const item = dbItems[0];
           const mapped = {
-            id: item.id,
+            id: String(item.id),
             slNo: item.sl_no || products.length + 1,
             sku: item.sku || `PRD-${item.id}`,
-            barcode: item.barcode,
-            name: item.name,
+            barcode: String(item.barcode || ''),
+            name: item.name || '',
             brand: item.brand || 'General',
             category: item.category || 'General Grocery',
             description: item.description || '',
-            price: Number(item.price),
+            price: Number(item.price) || 0,
             costPrice: Number(item.cost_price || 0),
             stock: Number(item.stock || 0),
             unit: item.unit || 'pcs',
             discount: item.discount || { type: 'percent', value: 0 },
-            image: item.image
+            image: item.image || ''
           };
           setProducts(prev => {
-            if (prev.some(p => p.id === mapped.id || p.barcode === mapped.barcode)) return prev;
+            if (prev.some(p => String(p.id) === String(mapped.id) || String(p.barcode || '') === mapped.barcode)) return prev;
             return [mapped, ...prev];
           });
           return mapped;
