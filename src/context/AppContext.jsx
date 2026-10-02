@@ -347,14 +347,125 @@ export function AppProvider({ children }) {
 
   const [activeCustomer, setActiveCustomer] = useState({ id: '', name: 'Walk-in Customer', points: 0 });
 
-  // Navigation - Persist active tab across refreshes
-  const [activeTab, setActiveTab] = useState(() => {
+  // View Mode: 'pos' (POS Bill Payment Counter) vs 'store' (Store Management Portal)
+  const [viewMode, setViewMode] = useState(() => {
     try {
-      return localStorage.getItem('grace_pos_active_tab') || 'pos';
+      const params = new URLSearchParams(window.location.search);
+      return params.get('view') === 'store' ? 'store' : 'pos';
     } catch {
       return 'pos';
     }
   });
+
+  // Navigation - Persist active tab across refreshes per viewMode
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const isStore = params.get('view') === 'store';
+      if (isStore) {
+        return localStorage.getItem('grace_pos_active_tab_store') || 'products';
+      }
+      return localStorage.getItem('grace_pos_active_tab_pos') || 'pos';
+    } catch {
+      return 'pos';
+    }
+  });
+
+  // Synchronize document title and handle popstate (browser back/forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('view') === 'store' ? 'store' : 'pos';
+      setViewMode(mode);
+      if (mode === 'store') {
+        const saved = localStorage.getItem('grace_pos_active_tab_store') || 'products';
+        setActiveTab(saved);
+      } else {
+        const saved = localStorage.getItem('grace_pos_active_tab_pos') || 'pos';
+        setActiveTab(saved);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Update browser tab title based on viewMode and shopName
+  useEffect(() => {
+    const title = shopSettings.shopName || 'Super Shop';
+    if (viewMode === 'store') {
+      document.title = `${title} - Store Management`;
+    } else {
+      document.title = `${title} - POS Billing Counter`;
+    }
+  }, [viewMode, shopSettings.shopName]);
+
+  // Persist Active Tab per view mode
+  useEffect(() => {
+    if (viewMode === 'store') {
+      localStorage.setItem('grace_pos_active_tab_store', activeTab);
+    } else {
+      localStorage.setItem('grace_pos_active_tab_pos', activeTab);
+    }
+  }, [activeTab, viewMode]);
+
+  // Helper to open Store tab in a new browser window/tab
+  const openStoreWindow = () => {
+    const storeUrl = `${window.location.origin}${window.location.pathname}?view=store`;
+    window.open(storeUrl, '_blank');
+  };
+
+  // Helper to open POS Terminal tab in a new browser window/tab
+  const openPosWindow = () => {
+    const posUrl = `${window.location.origin}${window.location.pathname}`;
+    window.open(posUrl, '_blank');
+  };
+
+  // Cross-tab real-time sync (BroadcastChannel + storage event)
+  useEffect(() => {
+    let bc;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('grace_pos_cross_tab_sync');
+        bc.onmessage = (event) => {
+          const { type, payload } = event.data || {};
+          if (type === 'PRODUCTS_UPDATED' && Array.isArray(payload)) {
+            setProducts(payload);
+          } else if (type === 'SETTINGS_UPDATED' && payload) {
+            setShopSettings(payload);
+          } else if (type === 'TRANSACTIONS_UPDATED' && Array.isArray(payload)) {
+            setTransactions(payload);
+          } else if (type === 'USERS_UPDATED' && Array.isArray(payload)) {
+            setUsers(payload);
+          }
+        };
+      }
+    } catch {}
+
+    const handleStorage = (e) => {
+      if (!e.key || !e.newValue) return;
+      try {
+        if (e.key === 'grace_pos_products') {
+          const data = JSON.parse(e.newValue);
+          if (Array.isArray(data)) setProducts(data);
+        } else if (e.key === 'grace_pos_settings') {
+          const data = JSON.parse(e.newValue);
+          if (data) setShopSettings(data);
+        } else if (e.key === 'grace_pos_transactions') {
+          const data = JSON.parse(e.newValue);
+          if (Array.isArray(data)) setTransactions(data);
+        } else if (e.key === 'grace_pos_users') {
+          const data = JSON.parse(e.newValue);
+          if (Array.isArray(data)) setUsers(data);
+        }
+      } catch (err) {}
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   // Selected receipt for thermal modal
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -377,19 +488,40 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  // Sync products to local storage
+  // Sync products to local storage & broadcast to other tabs
   useEffect(() => {
     localStorage.setItem('grace_pos_products', JSON.stringify(products));
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('grace_pos_cross_tab_sync');
+        bc.postMessage({ type: 'PRODUCTS_UPDATED', payload: products });
+        bc.close();
+      }
+    } catch {}
   }, [products]);
 
-  // Sync settings
+  // Sync settings & broadcast
   useEffect(() => {
     localStorage.setItem('grace_pos_settings', JSON.stringify(shopSettings));
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('grace_pos_cross_tab_sync');
+        bc.postMessage({ type: 'SETTINGS_UPDATED', payload: shopSettings });
+        bc.close();
+      }
+    } catch {}
   }, [shopSettings]);
 
-  // Sync transactions
+  // Sync transactions & broadcast
   useEffect(() => {
     localStorage.setItem('grace_pos_transactions', JSON.stringify(transactions));
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('grace_pos_cross_tab_sync');
+        bc.postMessage({ type: 'TRANSACTIONS_UPDATED', payload: transactions });
+        bc.close();
+      }
+    } catch {}
   }, [transactions]);
 
   // Persist Active Cart on every addition/removal/quantity change
@@ -401,11 +533,6 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('grace_pos_cart_discount', JSON.stringify(cartDiscount));
   }, [cartDiscount]);
-
-  // Persist Active Tab
-  useEffect(() => {
-    localStorage.setItem('grace_pos_active_tab', activeTab);
-  }, [activeTab]);
 
   // Sync with Supabase
   const syncWithSupabase = async () => {
@@ -1154,6 +1281,10 @@ export function AppProvider({ children }) {
         selectedReceipt,
         setSelectedReceipt,
         findProductByBarcodeOrSerial,
+        viewMode,
+        setViewMode,
+        openStoreWindow,
+        openPosWindow,
         activeTab,
         setActiveTab,
         isOnline,
