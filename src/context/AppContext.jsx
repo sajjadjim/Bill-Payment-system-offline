@@ -513,17 +513,29 @@ export function AppProvider({ children }) {
     });
   };
 
-  const addManualItemToCart = ({ name, price, brand = 'General', qty = 1, barcode = '', image = '' }) => {
+  const addManualItemToCart = ({ name, price, brand = 'General', category = 'General Grocery', qty = 1, barcode = '', image = '' }) => {
+    let maxIdNum = 0;
+    products.forEach(p => {
+      if (p.id) {
+        const match = String(p.id).match(/product-(\d+)/i) || String(p.id).match(/prod-(\d+)/i);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (!isNaN(n) && n > maxIdNum) maxIdNum = n;
+        }
+      }
+    });
+    const nextNum = Math.max(products.length + 1, maxIdNum + 1);
+    const generatedId = `product-${String(nextNum).padStart(4, '0')}`;
     const nextSl = products.length + 1;
     const cleanBarcode = barcode.trim() || String(Math.floor(8941000000000 + Math.random() * 999999999));
     const newProduct = {
       slNo: nextSl,
-      id: `prod-manual-${Date.now()}`,
-      sku: `PRD-${String(nextSl).padStart(4, '0')}`,
+      id: generatedId,
+      sku: `PRD-${String(nextNum).padStart(4, '0')}`,
       barcode: cleanBarcode,
       name: name.trim(),
       brand: brand.trim() || 'General',
-      category: 'General Grocery',
+      category: category.trim() || 'General Grocery',
       price: Number(price) || 0,
       costPrice: Number(price) * 0.85,
       stock: 100,
@@ -758,11 +770,13 @@ export function AppProvider({ children }) {
         sku: p.sku || `PRD-${p.id}`,
         barcode: String(p.barcode),
         name: p.name,
+        brand: p.brand || 'General',
         category: p.category || 'General Grocery',
         price: Number(p.price) || 0,
         cost_price: Number(p.costPrice) || 0,
         stock: Number(p.stock) || 0,
         unit: p.unit || 'pcs',
+        discount: p.discount || null,
         image: p.image || ''
       };
       const { data, error } = await supabase.from('products').upsert(payload);
@@ -856,19 +870,33 @@ export function AppProvider({ children }) {
   };
 
   const addProduct = async (newProduct) => {
+    // Generate sequential database ID as product-0001, product-0002, etc.
+    let maxIdNum = 0;
+    products.forEach(p => {
+      if (p.id) {
+        const match = String(p.id).match(/product-(\d+)/i) || String(p.id).match(/prod-(\d+)/i);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (!isNaN(n) && n > maxIdNum) maxIdNum = n;
+        }
+      }
+    });
+    const nextNum = Math.max(products.length + 1, maxIdNum + 1);
+    const generatedId = `product-${String(nextNum).padStart(4, '0')}`;
     const nextSl = products.length + 1;
+
     const created = {
       ...newProduct,
       slNo: nextSl,
-      id: newProduct.id || `prod-${Date.now()}`,
-      sku: newProduct.sku || `PRD-${String(nextSl).padStart(4, '0')}`,
-      brand: newProduct.brand || 'General',
-      category: newProduct.category || 'General Grocery',
+      id: newProduct.id || generatedId,
+      sku: newProduct.sku || `PRD-${String(nextNum).padStart(4, '0')}`,
+      brand: newProduct.brand?.trim() || 'General',
+      category: newProduct.category?.trim() || 'General Grocery',
       stock: Number(newProduct.stock) || 0,
       price: Number(newProduct.price) || 0,
       costPrice: Number(newProduct.costPrice) || 0,
       discount: newProduct.discount || { type: 'percent', value: 0 },
-      barcode: newProduct.barcode || String(Math.floor(8940000000000 + Math.random() * 9999999999)),
+      barcode: newProduct.barcode?.trim() || String(Math.floor(8940000000000 + Math.random() * 9999999999)),
       image: newProduct.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'
     };
     setProducts(prev => [...prev, created]);

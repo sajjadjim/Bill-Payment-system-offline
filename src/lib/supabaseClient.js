@@ -125,21 +125,28 @@ export async function uploadImageToSupabase(file, productId) {
  * Supabase SQL table setup script for user's Supabase project
  */
 export const SUPABASE_SETUP_SQL = `
--- 1. Create Products Table
+-- 1. Create Products Table (with brand column)
 CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   sl_no INTEGER,
   sku TEXT,
   barcode TEXT NOT NULL,
   name TEXT NOT NULL,
+  brand TEXT,
   category TEXT,
   price NUMERIC(10, 2) NOT NULL,
   cost_price NUMERIC(10, 2),
   stock INTEGER DEFAULT 0,
   unit TEXT DEFAULT 'pcs',
+  discount JSONB,
   image TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+
+-- Ensure brand column exists in existing database table
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS discount JSONB;
+
 
 -- 2. Create Invoices / Transactions Table
 CREATE TABLE IF NOT EXISTS public.transactions (

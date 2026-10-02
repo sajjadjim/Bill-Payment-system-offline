@@ -84,6 +84,11 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+-- Ensure brand and discount columns exist on existing tables
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS discount JSONB;
+
+
 -- 2. Create Invoices / Transactions Table
 CREATE TABLE IF NOT EXISTS public.transactions (
   id TEXT PRIMARY KEY,
