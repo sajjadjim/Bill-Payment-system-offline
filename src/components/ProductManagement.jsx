@@ -179,15 +179,18 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
   const brands = ['All', ...availableBrands];
 
   const filteredProducts = products.filter(p => {
-    const matchesBrand = filterBrand === 'All' || p.brand === filterBrand;
-    const matchesCat = filterCategory === 'All' || p.category === filterCategory;
-    const q = searchQuery.toLowerCase().trim();
-    const matchesQuery = !q || 
-      p.name.toLowerCase().includes(q) || 
-      (p.brand && p.brand.toLowerCase().includes(q)) ||
-      p.barcode.toLowerCase().includes(q) ||
-      String(p.slNo) === q ||
-      p.sku?.toLowerCase().includes(q);
+    if (!p) return false;
+    const matchesBrand = filterBrand === 'All' || String(p.brand || '') === filterBrand;
+    const matchesCat = filterCategory === 'All' || String(p.category || '') === filterCategory;
+    const q = (searchQuery || '').toLowerCase().trim();
+    if (!q) return matchesBrand && matchesCat;
+
+    const n = String(p.name || '').toLowerCase();
+    const br = String(p.brand || '').toLowerCase();
+    const b = String(p.barcode || '').toLowerCase();
+    const sku = String(p.sku || '').toLowerCase();
+    const sl = String(p.slNo || '');
+    const matchesQuery = n.includes(q) || br.includes(q) || b.includes(q) || sku.includes(q) || sl === q;
     return matchesBrand && matchesCat && matchesQuery;
   });
 
