@@ -701,7 +701,7 @@ export default function PosTerminal() {
         {/* Center: Mandatory Customer Mobile # & Real-Time Loyalty Points */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           
-          {/* Mobile # Input with Quick Demo Selector */}
+          {/* Customer Mobile # Input */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -713,9 +713,10 @@ export default function PosTerminal() {
             <span style={{
               background: (!customerPhone || customerPhone.trim().length < 6) ? '#dc2626' : '#15803d',
               color: '#ffffff',
-              padding: '6px 9px',
+              padding: '6px 10px',
               fontWeight: 800,
-              fontSize: '12px'
+              fontSize: '12px',
+              whiteSpace: 'nowrap'
             }}>
               Customer Phone *
             </span>
@@ -723,47 +724,19 @@ export default function PosTerminal() {
               type="tel"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="017xxxxxxxx"
+              placeholder="01xxxxxxxxx"
               title="Customer phone is mandatory for bill payment & receipt printing"
               style={{
                 border: 'none',
-                padding: '6px 8px',
+                padding: '6px 10px',
                 fontSize: '14px',
                 fontWeight: 800,
                 outline: 'none',
-                width: '120px',
+                width: '135px',
                 fontFamily: 'monospace',
                 color: customerLoyalty.found ? '#166534' : '#0f172a'
               }}
             />
-            {/* Quick Demo Customer Selector */}
-            <select
-              onChange={(e) => {
-                if (e.target.value) {
-                  setCustomerPhone(e.target.value);
-                }
-              }}
-              value=""
-              style={{
-                background: '#f0fdf4',
-                border: 'none',
-                borderLeft: '1px solid #bbf7d0',
-                padding: '6px 8px',
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#15803d',
-                cursor: 'pointer',
-                outline: 'none'
-              }}
-              title="Quickly pick a customer phone number"
-            >
-              <option value="">Demo ▾</option>
-              <option value="01711223344">01711223344 (Rahim)</option>
-              <option value="01819556677">01819556677 (Karima)</option>
-              <option value="01620754986">01620754986 (Sajjad)</option>
-              <option value="01912345678">01912345678 (Tanvir)</option>
-              <option value="01899887766">01899887766 (Sadia)</option>
-            </select>
           </div>
 
           {/* Points Display (Live from database, valid within 3 months) */}
@@ -1907,35 +1880,6 @@ export default function PosTerminal() {
                     boxSizing: 'border-box'
                   }}
                 />
-                
-                {/* Demo quick phone numbers selector */}
-                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Quick Demo:</span>
-                  {[
-                    { phone: '01711223344', name: 'Rahim' },
-                    { phone: '01819556677', name: 'Karima' },
-                    { phone: '01620754986', name: 'Sajjad' },
-                    { phone: '01912345678', name: 'Tanvir' }
-                  ].map(demo => (
-                    <button
-                      key={demo.phone}
-                      type="button"
-                      onClick={() => setCustomerPhone(demo.phone)}
-                      style={{
-                        background: customerPhone === demo.phone ? '#15803d' : '#f1f5f9',
-                        color: customerPhone === demo.phone ? '#ffffff' : '#334155',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '4px',
-                        padding: '3px 8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {demo.name}
-                    </button>
-                  ))}
-                </div>
 
                 {(!customerPhone || customerPhone.trim().length < 6) ? (
                   <div style={{ fontSize: '11.5px', color: '#dc2626', fontWeight: 800, marginTop: '5px' }}>
