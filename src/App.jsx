@@ -13,6 +13,7 @@ export default function App() {
   const { 
     currentUser, 
     isAdmin,
+    viewMode,
     activeTab, 
     setActiveTab, 
     selectedReceipt, 
@@ -41,21 +42,41 @@ export default function App() {
         }}
       />
 
-      {/* Main Tab Content */}
+      {/* Main Tab Content based on View Mode (POS Billing vs Store Management) */}
       <main className="main-content">
-        {activeTab === 'pos' && <PosTerminal />}
-        {activeTab === 'products' && (
-          <ProductManagement
-            isAddModalOpen={isAddModalOpen}
-            setIsAddModalOpen={setIsAddModalOpen}
-          />
-        )}
-        {activeTab === 'sales' && <SalesHistory />}
-        {activeTab === 'settings' && (
-          isAdmin ? <ShopSettings /> : <PosTerminal />
-        )}
-        {activeTab === 'architecture' && (
-          isAdmin ? <ArchitectureGuide /> : <PosTerminal />
+        {viewMode === 'store' ? (
+          <>
+            {(activeTab === 'products' || (!['settings', 'architecture'].includes(activeTab))) && (
+              <ProductManagement
+                isAddModalOpen={isAddModalOpen}
+                setIsAddModalOpen={setIsAddModalOpen}
+              />
+            )}
+            {activeTab === 'settings' && (
+              isAdmin ? <ShopSettings /> : (
+                <ProductManagement
+                  isAddModalOpen={isAddModalOpen}
+                  setIsAddModalOpen={setIsAddModalOpen}
+                />
+              )
+            )}
+            {activeTab === 'architecture' && (
+              isAdmin ? <ArchitectureGuide /> : (
+                <ProductManagement
+                  isAddModalOpen={isAddModalOpen}
+                  setIsAddModalOpen={setIsAddModalOpen}
+                />
+              )
+            )}
+          </>
+        ) : (
+          <>
+            {activeTab === 'sales' ? (
+              <SalesHistory />
+            ) : (
+              <PosTerminal />
+            )}
+          </>
         )}
       </main>
 
@@ -70,4 +91,3 @@ export default function App() {
     </div>
   );
 }
-
