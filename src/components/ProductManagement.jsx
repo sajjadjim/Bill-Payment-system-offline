@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { getProductPricing } from '../utils/pricing';
 import { 
@@ -27,7 +27,11 @@ import {
   Eye,
   FileText,
   Info,
-  ShoppingCart
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import JsBarcode from 'jsbarcode';
 
@@ -167,7 +171,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
   });
 
   const [imageMeta, setImageMeta] = useState(null);
-  const [isCompressing, setIsCompressing] = useState(false);
+  // Pagination State - 50 products per page by default for fastest page loading
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const categories = ['All', ...availableCategories];
   const brands = ['All', ...availableBrands];
@@ -185,11 +191,40 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
     return matchesBrand && matchesCat && matchesQuery;
   });
 
+  // Reset to page 1 whenever filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterBrand, filterCategory, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / (pageSize === -1 ? filteredProducts.length || 1 : pageSize)));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    if (pageSize === -1) return filteredProducts;
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredProducts.slice(startIndex, startIndex + pageSize);
+  }, [filteredProducts, safeCurrentPage, pageSize]);
+
+  const startItem = filteredProducts.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+  const endItem = pageSize === -1 ? filteredProducts.length : Math.min(filteredProducts.length, safeCurrentPage * pageSize);
+
   // Multi-select helpers
   const handleToggleSelectProduct = (id) => {
     setSelectedProductIds(prev => 
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
+  };
+
+  const isCurrentPageSelected = paginatedProducts.length > 0 && paginatedProducts.every(p => selectedProductIds.includes(p.id));
+
+  const handleToggleSelectCurrentPage = () => {
+    if (isCurrentPageSelected) {
+      const pageIds = new Set(paginatedProducts.map(p => p.id));
+      setSelectedProductIds(prev => prev.filter(id => !pageIds.has(id)));
+    } else {
+      const newSelected = new Set([...selectedProductIds, ...paginatedProducts.map(p => p.id)]);
+      setSelectedProductIds(Array.from(newSelected));
+    }
   };
 
   const handleSelectAllFiltered = () => {
@@ -827,24 +862,86 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
           </button>
         </div>
 
-        <button
-          onClick={resetToSampleData}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#64748b',
-            fontSize: '12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            marginLeft: 'auto'
-          }}
-          title="Reset to default items from the receipt photo"
-        >
-          <RefreshCw size={12} />
-          <span>Reset Sample Data</span>
-        </button>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          marginLeft: 'auto'
+        }}>
+          {filteredProducts.length > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              padding: '3px 8px',
+              fontSize: '12px'
+            }}>
+              <span style={{ color: '#64748b' }}>
+                Showing <strong style={{ color: '#0f172a' }}>{startItem}–{endItem}</strong> of <strong style={{ color: '#0f172a' }}>{filteredProducts.length}</strong>
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={safeCurrentPage <= 1}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: safeCurrentPage <= 1 ? 'not-allowed' : 'pointer',
+                    color: safeCurrentPage <= 1 ? '#cbd5e1' : '#15803d',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                  title="Previous Page"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+                <span style={{ fontWeight: 700, color: '#15803d', fontSize: '11.5px', minWidth: '32px', textAlign: 'center' }}>
+                  {safeCurrentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={safeCurrentPage >= totalPages}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: safeCurrentPage >= totalPages ? 'not-allowed' : 'pointer',
+                    color: safeCurrentPage >= totalPages ? '#cbd5e1' : '#15803d',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                  title="Next Page"
+                >
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={resetToSampleData}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#64748b',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Reset to default items from the receipt photo"
+          >
+            <RefreshCw size={12} />
+            <span>Reset Sample Data</span>
+          </button>
+        </div>
       </div>
 
       {/* ========================================================
@@ -865,8 +962,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                   <th style={{ padding: '10px 14px', width: '38px', textAlign: 'center' }}>
                     <input
                       type="checkbox"
-                      checked={filteredProducts.length > 0 && selectedProductIds.length === filteredProducts.length}
-                      onChange={handleSelectAllFiltered}
+                      checked={isCurrentPageSelected}
+                      onChange={handleToggleSelectCurrentPage}
+                      title={isCurrentPageSelected ? "Deselect this page" : "Select all products on this page"}
                       style={{ cursor: 'pointer' }}
                     />
                   </th>
@@ -890,7 +988,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     </td>
                   </tr>
                 ) : (
-                  filteredProducts.map(p => {
+                  paginatedProducts.map(p => {
                     const isLow = p.stock <= 10;
                     const isRealImage = p.image && (p.image.startsWith('http') || p.image.startsWith('data:'));
                     const pricing = getProductPricing(p);
@@ -1179,7 +1277,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               No products found matching your search.
             </div>
           ) : (
-            filteredProducts.map(p => {
+            paginatedProducts.map(p => {
               const isLow = p.stock <= 10;
               const isOutOfStock = p.stock <= 0;
               const isRealImage = p.image && (p.image.startsWith('http') || p.image.startsWith('data:'));
@@ -1430,7 +1528,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               No products found matching your search.
             </div>
           ) : (
-            filteredProducts.map(p => {
+            paginatedProducts.map(p => {
               const isLow = p.stock <= 10;
               const isOutOfStock = p.stock <= 0;
               const isRealImage = p.image && (p.image.startsWith('http') || p.image.startsWith('data:'));
@@ -1598,6 +1696,260 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               );
             })
           )}
+        </div>
+      )}
+
+      {/* ========================================================
+          PAGINATION BAR (50 products per page for maximum speed)
+      ======================================================== */}
+      {filteredProducts.length > 0 && (
+        <div style={{
+          marginTop: '18px',
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '10px',
+          padding: '12px 18px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+        }}>
+          {/* Left: Summary text */}
+          <div style={{ fontSize: '13px', color: '#475569', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>
+              Showing <strong style={{ color: '#0f172a' }}>{startItem}–{endItem}</strong> of{' '}
+              <strong style={{ color: '#0f172a' }}>{filteredProducts.length}</strong> products
+            </span>
+            {filteredProducts.length !== products.length && (
+              <span style={{ fontSize: '11.5px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '12px' }}>
+                Filtered from {products.length} total
+              </span>
+            )}
+          </div>
+
+          {/* Center: Navigation buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* First Page */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage(1)}
+              disabled={safeCurrentPage <= 1}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                background: safeCurrentPage <= 1 ? '#f8fafc' : '#ffffff',
+                color: safeCurrentPage <= 1 ? '#94a3b8' : '#334155',
+                cursor: safeCurrentPage <= 1 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s'
+              }}
+              title="First Page"
+            >
+              <ChevronsLeft size={16} />
+            </button>
+
+            {/* Previous Page */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage <= 1}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '0 10px',
+                height: '32px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                background: safeCurrentPage <= 1 ? '#f8fafc' : '#ffffff',
+                color: safeCurrentPage <= 1 ? '#94a3b8' : '#334155',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: safeCurrentPage <= 1 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s'
+              }}
+              title="Previous Page"
+            >
+              <ChevronLeft size={15} />
+              <span>Prev</span>
+            </button>
+
+            {/* Page number pills */}
+            {(() => {
+              const pages = [];
+              const maxVisible = 5;
+              let startP = Math.max(1, safeCurrentPage - Math.floor(maxVisible / 2));
+              let endP = Math.min(totalPages, startP + maxVisible - 1);
+              if (endP - startP + 1 < maxVisible) {
+                startP = Math.max(1, endP - maxVisible + 1);
+              }
+
+              if (startP > 1) {
+                pages.push(
+                  <button
+                    key={1}
+                    type="button"
+                    onClick={() => setCurrentPage(1)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: '#334155',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    1
+                  </button>
+                );
+                if (startP > 2) {
+                  pages.push(<span key="dots-start" style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>);
+                }
+              }
+
+              for (let p = startP; p <= endP; p++) {
+                const isActive = p === safeCurrentPage;
+                pages.push(
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setCurrentPage(p)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '6px',
+                      border: isActive ? '1px solid #15803d' : '1px solid #cbd5e1',
+                      background: isActive ? '#15803d' : '#ffffff',
+                      color: isActive ? '#ffffff' : '#334155',
+                      fontSize: '12.5px',
+                      fontWeight: isActive ? 700 : 600,
+                      cursor: 'pointer',
+                      boxShadow: isActive ? '0 1px 3px rgba(21,128,61,0.3)' : 'none'
+                    }}
+                  >
+                    {p}
+                  </button>
+                );
+              }
+
+              if (endP < totalPages) {
+                if (endP < totalPages - 1) {
+                  pages.push(<span key="dots-end" style={{ padding: '0 4px', color: '#94a3b8' }}>…</span>);
+                }
+                pages.push(
+                  <button
+                    key={totalPages}
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: '#334155',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {totalPages}
+                  </button>
+                );
+              }
+
+              return pages;
+            })()}
+
+            {/* Next Page */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={safeCurrentPage >= totalPages}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '0 10px',
+                height: '32px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                background: safeCurrentPage >= totalPages ? '#f8fafc' : '#ffffff',
+                color: safeCurrentPage >= totalPages ? '#94a3b8' : '#334155',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: safeCurrentPage >= totalPages ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s'
+              }}
+              title="Next Page"
+            >
+              <span>Next</span>
+              <ChevronRight size={15} />
+            </button>
+
+            {/* Last Page */}
+            <button
+              type="button"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={safeCurrentPage >= totalPages}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                background: safeCurrentPage >= totalPages ? '#f8fafc' : '#ffffff',
+                color: safeCurrentPage >= totalPages ? '#94a3b8' : '#334155',
+                cursor: safeCurrentPage >= totalPages ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s'
+              }}
+              title="Last Page"
+            >
+              <ChevronsRight size={16} />
+            </button>
+          </div>
+
+          {/* Right: Page Size Selector & Current Page Info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#64748b' }}>
+              <span>Per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  fontSize: '12.5px',
+                  color: '#0f172a',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                <option value={25}>25</option>
+                <option value={50}>50 (Default)</option>
+                <option value={100}>100</option>
+                <option value={-1}>All ({filteredProducts.length})</option>
+              </select>
+            </div>
+
+            <span style={{ fontSize: '12.5px', color: '#64748b' }}>
+              Page <strong style={{ color: '#0f172a' }}>{safeCurrentPage}</strong> of <strong style={{ color: '#0f172a' }}>{totalPages}</strong>
+            </span>
+          </div>
         </div>
       )}
 
