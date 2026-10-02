@@ -168,10 +168,10 @@ ${shopSettings?.systemProvider || "System by: Mediasoft Data Systems ltd. 02-550
                 Invoice : {receipt.invoiceNo}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
-                <span>Customer ID &nbsp;: {receipt.customerId || ""}</span>
+                <span style={{ fontWeight: 700 }}>Customer Mobile: {receipt.customerPhone || receipt.customerId || "N/A"}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Customer Name : {receipt.customerName || ""}</span>
+                <span>Customer Name &nbsp;: {receipt.customerName || "Customer"}</span>
               </div>
             </div>
 

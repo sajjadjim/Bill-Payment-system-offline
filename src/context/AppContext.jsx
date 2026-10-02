@@ -581,6 +581,59 @@ export function AppProvider({ children }) {
         console.warn("Supabase user sync error:", userErr);
       }
 
+      // Sync transactions from Supabase transactions table
+      try {
+        const { data: txData, error: txError } = await supabase
+          .from('transactions')
+          .select('*')
+          .order('timestamp', { ascending: false })
+          .limit(200);
+
+        if (!txError && txData && txData.length > 0) {
+          const mappedTxs = txData.map(tx => {
+            const rawPhone = tx.customer_phone || (tx.customer_name && tx.customer_name.match(/01[3-9]\d{8}/) ? tx.customer_name.match(/01[3-9]\d{8}/)[0] : '');
+            return {
+              id: tx.id,
+              invoiceNo: tx.invoice_no,
+              date: tx.date || '',
+              time: tx.time || '',
+              timestamp: Number(tx.timestamp) || (tx.created_at ? new Date(tx.created_at).getTime() : Date.now()),
+              shopId: tx.shop_id || 'ZAVI',
+              servedBy: tx.served_by || 'Cashier',
+              customerId: rawPhone || tx.customer_name || '',
+              customerName: tx.customer_name || 'Customer',
+              customerPhone: rawPhone,
+              items: Array.isArray(tx.items) ? tx.items : [],
+              totalItemsQty: Number(tx.total_items_qty) || 0,
+              subtotal: Number(tx.subtotal) || 0,
+              itemSavings: 0,
+              discount: Number(tx.discount) || 0,
+              vat: Number(tx.vat) || 0,
+              netAmount: Number(tx.net_amount) || 0,
+              payType: tx.pay_type || 'CASH',
+              paidAmount: Number(tx.paid_amount) || Number(tx.net_amount) || 0,
+              changeAmount: Number(tx.change_amount) || 0,
+              pointsThisInvoice: Number(tx.points_earned) || 0,
+              previousPointBalance: 0,
+              redeemPoint: Number(tx.points_redeemed) || 0
+            };
+          });
+
+          setTransactions(prevLocal => {
+            const merged = [...mappedTxs];
+            prevLocal.forEach(localTx => {
+              if (!merged.some(m => m.id === localTx.id || m.invoiceNo === localTx.invoiceNo)) {
+                merged.push(localTx);
+              }
+            });
+            merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            return merged;
+          });
+        }
+      } catch (txErr) {
+        console.warn("Supabase transactions sync error:", txErr);
+      }
+
       setSupabaseStatus('connected');
     } catch {
       setSupabaseStatus('error');
@@ -953,32 +1006,66 @@ export function AppProvider({ children }) {
   };
 
   const syncTransactionToSupabase = async (tx) => {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) {
+      console.warn("Offline: transaction saved locally.");
+      return { success: false, reason: 'offline' };
+    }
     try {
-      await supabase.from('transactions').insert({
+      const phoneClean = (tx.customerPhone || tx.customerId || '').trim();
+      const customerDisplayName = phoneClean
+        ? (tx.customerName && tx.customerName !== 'Walk-in Customer' ? `${tx.customerName} (${phoneClean})` : `Customer (${phoneClean})`)
+        : (tx.customerName || 'Walk-in Customer');
+
+      // Base payload with guaranteed columns that exist in any standard transactions table schema
+      const basePayload = {
         id: tx.id,
         invoice_no: tx.invoiceNo,
         date: tx.date,
         time: tx.time,
-        timestamp: tx.timestamp,
-        shop_id: tx.shopId,
-        served_by: tx.servedBy,
-        customer_name: tx.customerName,
-        customer_phone: tx.customerPhone || tx.customerId,
-        points_earned: tx.pointsThisInvoice || 0,
-        points_redeemed: tx.redeemPoint || 0,
+        timestamp: Number(tx.timestamp) || Date.now(),
+        shop_id: tx.shopId || 'ZAVI',
+        served_by: tx.servedBy || 'Cashier',
+        customer_name: customerDisplayName,
         items: tx.items,
-        total_items_qty: tx.totalItemsQty,
-        subtotal: tx.subtotal,
-        discount: tx.discount,
-        vat: tx.vat,
-        net_amount: tx.netAmount,
-        pay_type: tx.payType,
-        paid_amount: tx.paidAmount,
-        change_amount: tx.changeAmount
-      });
+        total_items_qty: Number(tx.totalItemsQty) || 0,
+        subtotal: Number(tx.subtotal) || 0,
+        discount: Number(tx.discount) || 0,
+        vat: Number(tx.vat) || 0,
+        net_amount: Number(tx.netAmount) || 0,
+        pay_type: tx.payType || 'CASH',
+        paid_amount: Number(tx.paidAmount) || Number(tx.netAmount) || 0,
+        change_amount: Number(tx.changeAmount) || 0
+      };
+
+      // Extended payload including customer_phone and points columns
+      const extendedPayload = {
+        ...basePayload,
+        customer_phone: phoneClean || null,
+        points_earned: Number(tx.pointsThisInvoice) || 0,
+        points_redeemed: Number(tx.redeemPoint) || 0
+      };
+
+      // Try inserting with extended columns first
+      let { data, error } = await supabase.from('transactions').insert(extendedPayload);
+
+      // If Supabase returns PGRST204 (column does not exist in schema cache), fallback to basePayload
+      if (error && (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('customer_phone') || error.message?.includes('points'))) {
+        console.warn("Retrying transaction insert with base schema:", error.message);
+        const retryRes = await supabase.from('transactions').insert(basePayload);
+        error = retryRes.error;
+        data = retryRes.data;
+      }
+
+      if (error) {
+        console.error("Supabase transaction insert failed:", error);
+        return { success: false, error };
+      }
+
+      console.log("Transaction successfully saved to Supabase database!", tx.invoiceNo);
+      return { success: true, data };
     } catch (err) {
-      console.warn("Supabase transaction insert skipped:", err);
+      console.error("Supabase transaction insert exception:", err);
+      return { success: false, error: err };
     }
   };
 

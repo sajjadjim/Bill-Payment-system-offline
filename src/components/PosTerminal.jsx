@@ -69,6 +69,7 @@ export default function PosTerminal() {
   const isBagModalOpenRef = useRef(false);
   isBagModalOpenRef.current = isBagModalOpen;
   const handlePrintBillRef = useRef(null);
+  const phoneModalInputRef = useRef(null);
 
   // Search dropdown suggestions
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -423,6 +424,15 @@ export default function PosTerminal() {
 
   // Final confirmation of Bag selection and completing transaction
   const handleConfirmBagAndPrint = () => {
+    const cleanPhone = (customerPhone || '').trim();
+    if (!cleanPhone || cleanPhone.length < 6) {
+      alert("⚠️ Customer Phone Number is REQUIRED!\n\nPlease enter the customer's phone number before completing bill payment and printing the receipt slip.");
+      if (phoneModalInputRef.current) {
+        phoneModalInputRef.current.focus();
+      }
+      return;
+    }
+
     const isBagYes = bagChoice === 'Yes';
     const bagPrice = isBagYes ? 20 : 0;
     const finalPayable = payableAmount + bagPrice;
@@ -431,8 +441,8 @@ export default function PosTerminal() {
       payType: selectedTender.toUpperCase(),
       paidAmount: cashReceived > 0 ? cashReceived : finalPayable,
       note: `Paid via ${selectedTender}`,
-      customerPhone,
-      customerName,
+      customerPhone: cleanPhone,
+      customerName: customerName || (customerLoyalty.found ? customerLoyalty.name : 'Customer'),
       redeemedPoints: pointsRedeemed,
       pointsDiscount: pointsDiscountValue,
       includeBag: isBagYes,
@@ -688,31 +698,46 @@ export default function PosTerminal() {
           </form>
         </div>
 
-        {/* Center: Optional Customer Mobile # & Real-Time Loyalty Points (Only if customer wants points) */}
+        {/* Center: Mandatory Customer Mobile # & Real-Time Loyalty Points */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           
-          {/* Mobile # Input (Optional - left empty by default) with Quick Demo Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '3px' }}>
-            <span style={{ background: '#15803d', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>Mobile #</span>
+          {/* Mobile # Input with Quick Demo Selector */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#ffffff',
+            border: (!customerPhone || customerPhone.trim().length < 6) ? '1.5px solid #dc2626' : '1.5px solid #15803d',
+            borderRadius: '4px',
+            overflow: 'hidden'
+          }}>
+            <span style={{
+              background: (!customerPhone || customerPhone.trim().length < 6) ? '#dc2626' : '#15803d',
+              color: '#ffffff',
+              padding: '6px 9px',
+              fontWeight: 800,
+              fontSize: '12px'
+            }}>
+              Customer Phone *
+            </span>
             <input
-              type="text"
+              type="tel"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder="017xxxxxxxx"
-              title="Enter customer phone to earn & check loyalty points (100 Tk = 1 pt, valid 3 months)"
+              title="Customer phone is mandatory for bill payment & receipt printing"
               style={{
                 border: 'none',
-                padding: '5px 8px',
+                padding: '6px 8px',
                 fontSize: '14px',
                 fontWeight: 800,
                 outline: 'none',
-                width: '110px',
+                width: '120px',
                 fontFamily: 'monospace',
                 color: customerLoyalty.found ? '#166534' : '#0f172a'
               }}
             />
             {/* Quick Demo Customer Selector */}
-            {/* <select
+            <select
               onChange={(e) => {
                 if (e.target.value) {
                   setCustomerPhone(e.target.value);
@@ -723,22 +748,22 @@ export default function PosTerminal() {
                 background: '#f0fdf4',
                 border: 'none',
                 borderLeft: '1px solid #bbf7d0',
-                padding: '5px 6px',
+                padding: '6px 8px',
                 fontSize: '11px',
                 fontWeight: 800,
                 color: '#15803d',
                 cursor: 'pointer',
                 outline: 'none'
               }}
-              title="Select a Demo Customer with Points"
+              title="Quickly pick a customer phone number"
             >
               <option value="">Demo ▾</option>
-              <option value="01711223344">01711223344 (Rahim - 100 Pts / ৳75)</option>
-              <option value="01819556677">01819556677 (Karima - 200 Pts / ৳150)</option>
-              <option value="01620754986">01620754986 (Sajjad - 500 Pts / ৳375)</option>
-              <option value="01912345678">01912345678 (Tanvir - 350 Pts / ৳262)</option>
-              <option value="01899887766">01899887766 (Sadia - 150 Pts / ৳112)</option>
-            </select> */}
+              <option value="01711223344">01711223344 (Rahim)</option>
+              <option value="01819556677">01819556677 (Karima)</option>
+              <option value="01620754986">01620754986 (Sajjad)</option>
+              <option value="01912345678">01912345678 (Tanvir)</option>
+              <option value="01899887766">01899887766 (Sadia)</option>
+            </select>
           </div>
 
           {/* Points Display (Live from database, valid within 3 months) */}
@@ -1843,6 +1868,86 @@ export default function PosTerminal() {
               }} 
               style={{ padding: '20px' }}
             >
+              {/* Mandatory Customer Mobile Phone for Bill Payment */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '14.5px', fontWeight: 900, color: '#0f172a' }}>
+                    Customer Phone Number <span style={{ color: '#dc2626' }}>* (আবশ্যক)</span>:
+                  </label>
+                  {customerPhone && customerPhone.trim().length >= 6 ? (
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', background: '#f0fdf4', padding: '2px 8px', borderRadius: '4px', border: '1px solid #bbf7d0' }}>
+                      ✓ Verified Phone
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#dc2626', background: '#fef2f2', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fecaca' }}>
+                      Required for Bill
+                    </span>
+                  )}
+                </div>
+                
+                <input
+                  ref={phoneModalInputRef}
+                  type="tel"
+                  required
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="01xxxxxxxxx (e.g. 01711223344)"
+                  autoFocus={!customerPhone}
+                  style={{
+                    width: '100%',
+                    padding: '11px 14px',
+                    fontSize: '16px',
+                    fontWeight: 800,
+                    fontFamily: 'monospace',
+                    borderRadius: '6px',
+                    border: (!customerPhone || customerPhone.trim().length < 6) ? '2px solid #dc2626' : '2px solid #15803d',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                
+                {/* Demo quick phone numbers selector */}
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>Quick Demo:</span>
+                  {[
+                    { phone: '01711223344', name: 'Rahim' },
+                    { phone: '01819556677', name: 'Karima' },
+                    { phone: '01620754986', name: 'Sajjad' },
+                    { phone: '01912345678', name: 'Tanvir' }
+                  ].map(demo => (
+                    <button
+                      key={demo.phone}
+                      type="button"
+                      onClick={() => setCustomerPhone(demo.phone)}
+                      style={{
+                        background: customerPhone === demo.phone ? '#15803d' : '#f1f5f9',
+                        color: customerPhone === demo.phone ? '#ffffff' : '#334155',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {demo.name}
+                    </button>
+                  ))}
+                </div>
+
+                {(!customerPhone || customerPhone.trim().length < 6) ? (
+                  <div style={{ fontSize: '11.5px', color: '#dc2626', fontWeight: 800, marginTop: '5px' }}>
+                    ⚠️ Customer phone is mandatory to proceed with bill payment & store transaction.
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 700, marginTop: '5px' }}>
+                    ✓ Loyalty Points Account: {customerLoyalty.found ? `${customerLoyalty.validPoints} valid points available` : 'New customer (Points will be credited)'}
+                  </div>
+                )}
+              </div>
+
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '15px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>
                   Bag Koi (ব্যাগ নির্বাচন করুন):
