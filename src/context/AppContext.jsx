@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DEFAULT_PRODUCTS, DEFAULT_SHOP_SETTINGS } from '../data/defaultProducts';
 import { supabase, compressProductImage, uploadImageToSupabase, SUPABASE_SETUP_SQL } from '../lib/supabaseClient';
 import { getProductPricing } from '../utils/pricing';
+import { saveProductsToCookie, getProductsFromCookie } from '../utils/cookieStorage';
 
 export const DEFAULT_USERS = [
   {
@@ -30,6 +32,8 @@ export const DEFAULT_USERS = [
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  const queryClient = useQueryClient();
+
   // Staff Users & Auth State (Admin vs Seller RBAC)
   const [users, setUsers] = useState(() => {
     try {
@@ -63,22 +67,99 @@ export function AppProvider({ children }) {
     }
   }, [currentUser]);
 
-  // Products state (localStorage-backed + Supabase cloud sync)
+  // Products state (Browser cookies-backed + TanStack Query + Supabase cloud sync)
   const [products, setProducts] = useState(() => {
     try {
-      const saved = localStorage.getItem('grace_pos_products');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const productMap = new Map();
-          DEFAULT_PRODUCTS.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
-          parsed.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
-          return Array.from(productMap.values());
-        }
+      const cookieData = getProductsFromCookie();
+      if (cookieData && Array.isArray(cookieData) && cookieData.length > 0) {
+        const productMap = new Map();
+        DEFAULT_PRODUCTS.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+        cookieData.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+        return Array.from(productMap.values());
       }
       return DEFAULT_PRODUCTS;
     } catch {
       return DEFAULT_PRODUCTS;
+    }
+  });
+
+  // TanStack Query: Real-time fetch from Supabase products table
+  const {
+    data: queryProducts,
+    isLoading: isProductsLoading,
+    refetch: refetchProducts
+  } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      if (navigator.onLine) {
+        try {
+          const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            const mapped = data.map((item, idx) => ({
+              id: String(item.id),
+              slNo: item.sl_no || idx + 1,
+              sku: item.sku || `PRD-${String(idx + 1).padStart(4, '0')}`,
+              barcode: String(item.barcode),
+              name: item.name,
+              brand: item.brand || 'General',
+              category: item.category || 'General Grocery',
+              description: item.description || '',
+              price: Number(item.price) || 0,
+              costPrice: Number(item.cost_price || 0),
+              stock: Number(item.stock || 0),
+              unit: item.unit || 'pcs',
+              discount: item.discount || { type: 'percent', value: 0 },
+              image: item.image || ''
+            }));
+
+            // Merge with DEFAULT_PRODUCTS so complete catalog is always available
+            const productMap = new Map();
+            DEFAULT_PRODUCTS.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+            mapped.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+            const merged = Array.from(productMap.values());
+
+            // Save to browser cookies for fastest payment processing
+            saveProductsToCookie(merged);
+            return merged;
+          }
+        } catch (err) {
+          console.warn("TanStack Query: Products fetch exception:", err);
+        }
+      }
+
+      const cookieProducts = getProductsFromCookie();
+      return cookieProducts && cookieProducts.length > 0 ? cookieProducts : DEFAULT_PRODUCTS;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    initialData: () => getProductsFromCookie() || DEFAULT_PRODUCTS
+  });
+
+  // Keep state & browser cookies synced with TanStack Query results
+  useEffect(() => {
+    if (queryProducts && Array.isArray(queryProducts) && queryProducts.length > 0) {
+      setProducts(queryProducts);
+      saveProductsToCookie(queryProducts);
+    }
+  }, [queryProducts]);
+
+  // TanStack Query Mutation: Update product on Supabase database
+  const updateProductMutation = useMutation({
+    mutationFn: async (updatedProduct) => {
+      const res = await syncProductToSupabase(updatedProduct);
+      return { res, updatedProduct };
+    },
+    onSuccess: ({ updatedProduct }) => {
+      queryClient.setQueryData(['products'], (old) => {
+        const list = Array.isArray(old) ? old : [];
+        const updatedList = list.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+        saveProductsToCookie(updatedList);
+        return updatedList;
+      });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     }
   });
 
@@ -487,9 +568,10 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  // Sync products to local storage & broadcast to other tabs
+  // Sync products to local storage, browser cookies & broadcast to other tabs
   useEffect(() => {
     localStorage.setItem('grace_pos_products', JSON.stringify(products));
+    saveProductsToCookie(products);
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         const bc = new BroadcastChannel('grace_pos_cross_tab_sync');
@@ -662,6 +744,9 @@ export function AppProvider({ children }) {
     }
 
     setCurrentUser(match);
+
+    // When staff logs in, automatically refetch all latest products from Supabase and cache in browser cookies
+    refetchProducts();
 
     // If seller logs in, route to POS and automatically set servedBy name on receipts
     if (match.role === 'seller') {
@@ -1162,6 +1247,7 @@ export function AppProvider({ children }) {
       brand: newProduct.brand?.trim() || 'General',
       category: newProduct.category?.trim() || 'General Grocery',
       description: newProduct.description?.trim() || '',
+      unit: newProduct.unit || 'pcs',
       stock: Number(newProduct.stock) || 0,
       price: Number(newProduct.price) || 0,
       costPrice: Number(newProduct.costPrice) || 0,
@@ -1169,39 +1255,54 @@ export function AppProvider({ children }) {
       barcode: newProduct.barcode?.trim() || String(Math.floor(8940000000000 + Math.random() * 9999999999)),
       image: newProduct.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'
     };
-    setProducts(prev => [...prev, created]);
+    setProducts(prev => {
+      const updated = [...prev, created];
+      saveProductsToCookie(updated);
+      return updated;
+    });
     const syncRes = await syncProductToSupabase(created);
+    queryClient.invalidateQueries({ queryKey: ['products'] });
     return { product: created, syncResult: syncRes };
   };
 
   const updateProduct = async (id, updatedFields) => {
     let updatedObj = null;
-    setProducts(prev =>
-      prev.map(p => {
+    setProducts(prev => {
+      const updatedList = prev.map(p => {
         if (p.id === id) {
           updatedObj = { ...p, ...updatedFields };
-          syncProductToSupabase(updatedObj);
           return updatedObj;
         }
         return p;
-      })
-    );
+      });
+      saveProductsToCookie(updatedList);
+      return updatedList;
+    });
+
+    if (updatedObj) {
+      updateProductMutation.mutate(updatedObj);
+    }
     return updatedObj;
   };
 
   const deleteProduct = (id) => {
     // Requirements: No products can be removed/deleted forever from website/database.
     // Instead, if deletion/removal is attempted, set quantity/stock to 0.
-    setProducts(prev =>
-      prev.map(p => {
+    let updatedObj = null;
+    setProducts(prev => {
+      const updatedList = prev.map(p => {
         if (p.id === id) {
-          const updated = { ...p, stock: 0 };
-          syncProductToSupabase(updated);
-          return updated;
+          updatedObj = { ...p, stock: 0 };
+          return updatedObj;
         }
         return p;
-      })
-    );
+      });
+      saveProductsToCookie(updatedList);
+      return updatedList;
+    });
+    if (updatedObj) {
+      updateProductMutation.mutate(updatedObj);
+    }
     alert("Notice: Products cannot be deleted permanently from the database. Stock has been set to 0 (Out of Stock).");
   };
 
@@ -1438,7 +1539,10 @@ export function AppProvider({ children }) {
         uploadImageToSupabase,
         compressProductImage,
         SUPABASE_SETUP_SQL,
-        getProductPricing
+        getProductPricing,
+        refetchProducts,
+        isProductsLoading,
+        updateProductMutation
       }}
     >
 
