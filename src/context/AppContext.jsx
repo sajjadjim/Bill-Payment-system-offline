@@ -553,6 +553,7 @@ export function AppProvider({ children }) {
           name: item.name,
           brand: item.brand || 'General',
           category: item.category || 'General Grocery',
+          description: item.description || '',
           price: Number(item.price),
           costPrice: Number(item.cost_price || 0),
           stock: Number(item.stock || 0),
@@ -899,6 +900,7 @@ export function AppProvider({ children }) {
         name: p.name,
         brand: p.brand || 'General',
         category: p.category || 'General Grocery',
+        description: p.description || '',
         price: Number(p.price) || 0,
         cost_price: Number(p.costPrice) || 0,
         stock: Number(p.stock) || 0,
@@ -927,11 +929,14 @@ export function AppProvider({ children }) {
         sku: p.sku || `PRD-${String(idx + 1).padStart(4, '0')}`,
         barcode: String(p.barcode),
         name: p.name,
+        brand: p.brand || 'General',
         category: p.category || 'General Grocery',
+        description: p.description || '',
         price: Number(p.price) || 0,
         cost_price: Number(p.costPrice) || 0,
         stock: Number(p.stock) || 0,
         unit: p.unit || 'pcs',
+        discount: p.discount || null,
         image: p.image || ''
       }));
 
@@ -1019,6 +1024,7 @@ export function AppProvider({ children }) {
       sku: newProduct.sku || `PRD-${String(nextNum).padStart(4, '0')}`,
       brand: newProduct.brand?.trim() || 'General',
       category: newProduct.category?.trim() || 'General Grocery',
+      description: newProduct.description?.trim() || '',
       stock: Number(newProduct.stock) || 0,
       price: Number(newProduct.price) || 0,
       costPrice: Number(newProduct.costPrice) || 0,
