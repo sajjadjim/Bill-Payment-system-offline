@@ -178,24 +178,29 @@ export function AppProvider({ children }) {
   });
 
   // Active POS Cart (Billing List) - Persisted across page hard refreshes!
-  // Defaults to the 3 items shown in the Bangladeshi supershop photo
+  // Starts with an empty cart []. If the cashier scanned barcode products that have NOT been billed yet,
+  // they remain in the cart across page reloads until billed and submitted to the database.
   const [cart, setCart] = useState(() => {
     try {
       const savedCart = localStorage.getItem('grace_pos_active_cart');
       if (savedCart) {
         const parsed = JSON.parse(savedCart);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // If local storage still holds the old 3 sample products, purge them
+          const isLegacyDefault = parsed.length === 3 &&
+            parsed.some(item => item.product?.barcode === '2603029') &&
+            parsed.some(item => item.product?.barcode === '2704597') &&
+            parsed.some(item => item.product?.barcode === '2817974');
+          if (isLegacyDefault) {
+            localStorage.removeItem('grace_pos_active_cart');
+            return [];
+          }
+          return parsed;
+        }
       }
     } catch {}
 
-    const rok = DEFAULT_PRODUCTS.find(p => p.barcode === '2603029');
-    const saad = DEFAULT_PRODUCTS.find(p => p.barcode === '2704597');
-    const sixers = DEFAULT_PRODUCTS.find(p => p.barcode === '2817974');
-    const initial = [];
-    if (rok) initial.push({ product: rok, qty: 2 });
-    if (saad) initial.push({ product: saad, qty: 1 });
-    if (sixers) initial.push({ product: sixers, qty: 1 });
-    return initial;
+    return [];
   });
 
   // Customer Loyalty Points Database (Indexed by Mobile Number Only)
@@ -330,24 +335,15 @@ export function AppProvider({ children }) {
   const [heldInvoices, setHeldInvoices] = useState(() => {
     try {
       const saved = localStorage.getItem('grace_pos_held_invoices');
-      return saved ? JSON.parse(saved) : [
-        {
-          slot: 1,
-          title: 'Recall Invoice - 1',
-          time: '09:40 PM',
-          itemsCount: 2,
-          total: 195.00,
-          customerPhone: '01711223344',
-          customerName: 'Rahim Ahmed',
-          cart: [
-            { product: DEFAULT_PRODUCTS[3] || DEFAULT_PRODUCTS[0], qty: 1 },
-            { product: DEFAULT_PRODUCTS[4] || DEFAULT_PRODUCTS[1], qty: 1 }
-          ]
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(inv => inv.customerPhone !== '01711223344' || inv.time !== '09:40 PM');
+          return clean;
         }
-      ];
-    } catch {
-      return [];
-    }
+      }
+    } catch {}
+    return [];
   });
 
   useEffect(() => {
