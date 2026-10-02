@@ -69,13 +69,12 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('grace_pos_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Ensure new photo products exist
-        const hasPhotoItems = parsed.some(p => p.barcode === '2603029');
-        if (hasPhotoItems) {
-          return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const productMap = new Map();
+          DEFAULT_PRODUCTS.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+          parsed.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+          return Array.from(productMap.values());
         }
-        // merge missing defaults
-        return [...DEFAULT_PRODUCTS.slice(0, 3), ...parsed];
       }
       return DEFAULT_PRODUCTS;
     } catch {
@@ -561,7 +560,12 @@ export function AppProvider({ children }) {
           discount: item.discount || { type: 'percent', value: 0 },
           image: item.image
         }));
-        setProducts(mapped);
+        setProducts(prev => {
+          const productMap = new Map();
+          prev.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+          mapped.forEach(p => productMap.set(String(p.barcode) + '_' + String(p.id), p));
+          return Array.from(productMap.values());
+        });
       }
 
       // Sync users from Supabase users table (manually created accounts)
@@ -760,15 +764,61 @@ export function AppProvider({ children }) {
     localStorage.removeItem('grace_pos_cart_discount');
   };
 
-  const findProductByBarcodeOrSerial = (query) => {
-    const clean = query.trim().toLowerCase();
+  const findProductByBarcodeOrSerial = async (query) => {
+    const clean = (query || '').trim().toLowerCase();
+    if (!clean) return null;
+
+    // 1. Check local products by Serial / SKU
     const bySl = products.find(p => String(p.slNo) === clean || p.sku?.toLowerCase() === clean);
     if (bySl) return bySl;
 
-    const byBarcode = products.find(p => p.barcode.toLowerCase() === clean || p.barcode.endsWith(clean));
+    // 2. Check local products by Barcode
+    const byBarcode = products.find(p => p.barcode?.toLowerCase() === clean || p.barcode?.endsWith(clean));
     if (byBarcode) return byBarcode;
 
-    return products.find(p => p.name.toLowerCase().includes(clean) || (p.brand && p.brand.toLowerCase().includes(clean)));
+    // 3. Check local products by Name or Brand
+    const byName = products.find(p => p.name?.toLowerCase().includes(clean) || (p.brand && p.brand?.toLowerCase().includes(clean)));
+    if (byName) return byName;
+
+    // 4. Query Supabase database system if online
+    if (navigator.onLine) {
+      try {
+        const { data: dbItems, error } = await supabase
+          .from('products')
+          .select('*')
+          .or(`barcode.eq.${clean},barcode.ilike.%${clean}%,sku.ilike.%${clean}%,name.ilike.%${clean}%`)
+          .limit(1);
+
+        if (!error && dbItems && dbItems.length > 0) {
+          const item = dbItems[0];
+          const mapped = {
+            id: item.id,
+            slNo: item.sl_no || products.length + 1,
+            sku: item.sku || `PRD-${item.id}`,
+            barcode: item.barcode,
+            name: item.name,
+            brand: item.brand || 'General',
+            category: item.category || 'General Grocery',
+            description: item.description || '',
+            price: Number(item.price),
+            costPrice: Number(item.cost_price || 0),
+            stock: Number(item.stock || 0),
+            unit: item.unit || 'pcs',
+            discount: item.discount || { type: 'percent', value: 0 },
+            image: item.image
+          };
+          setProducts(prev => {
+            if (prev.some(p => p.id === mapped.id || p.barcode === mapped.barcode)) return prev;
+            return [mapped, ...prev];
+          });
+          return mapped;
+        }
+      } catch (err) {
+        console.warn("Supabase barcode lookup error:", err);
+      }
+    }
+
+    return null;
   };
 
   const generateInvoiceNumber = () => {
