@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   name TEXT NOT NULL,
   brand TEXT,
   category TEXT,
+  description TEXT,
   price NUMERIC(10, 2) NOT NULL,
   cost_price NUMERIC(10, 2),
   stock INTEGER DEFAULT 0,
@@ -143,8 +144,9 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- Ensure brand column exists in existing database table
+-- Ensure brand and description columns exist in existing database table
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS discount JSONB;
 
 
