@@ -106,7 +106,7 @@ ${shopSettings?.systemProvider || "System by: Mediasoft Data Systems ltd. 02-550
           background: '#f8fafc'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CheckCircle size={18} color="#059669" />
+            <CheckCircle size={18} color="#15803d" />
             <span style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>
               Transaction Slip & Thermal Receipt
             </span>
@@ -358,15 +358,14 @@ ${shopSettings?.systemProvider || "System by: Mediasoft Data Systems ltd. 02-550
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#059669',
+              background: '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '8px 16px',
               borderRadius: '6px',
               fontSize: '13px',
               fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)'
+              cursor: 'pointer'
             }}
           >
             <Printer size={15} />

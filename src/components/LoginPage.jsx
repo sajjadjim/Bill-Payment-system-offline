@@ -57,7 +57,7 @@ export default function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      background: '#f1f5f9',
       padding: '20px',
       fontFamily: 'var(--font-sans)'
     }}>
@@ -65,32 +65,31 @@ export default function LoginPage() {
         width: '100%',
         maxWidth: '460px',
         background: '#ffffff',
-        borderRadius: '16px',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
-        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+        border: '1px solid #cbd5e1',
         overflow: 'hidden'
       }}>
         {/* Header Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-          padding: '28px 24px',
+          background: '#15803d',
+          padding: '24px 20px',
           textAlign: 'center',
           color: '#ffffff',
           position: 'relative'
         }}>
           <div style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '12px',
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(8px)',
+            width: '52px',
+            height: '52px',
+            borderRadius: '10px',
+            background: 'rgba(255, 255, 255, 0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 14px auto',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
+            margin: '0 auto 12px auto',
+            border: '1px solid rgba(255, 255, 255, 0.25)'
           }}>
-            <Store size={30} color="#ffffff" />
+            <Store size={28} color="#ffffff" />
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
             {shopSettings.shopName || "Grace Super Shop"}
@@ -234,7 +233,7 @@ export default function LoginPage() {
               style={{
                 width: '100%',
                 padding: '12px',
-                background: '#059669',
+                background: '#15803d',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
@@ -245,11 +244,10 @@ export default function LoginPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.25)',
                 transition: 'background 0.15s ease'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#047857'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#059669'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#166534'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#15803d'}
             >
               <span>{isSubmitting ? 'Signing in...' : 'Sign In to POS System'}</span>
               <ArrowRight size={16} />
@@ -268,7 +266,7 @@ export default function LoginPage() {
               justifyContent: 'space-between'
             }}>
               <span>1-CLICK DEMO CREDENTIALS:</span>
-              <span style={{ fontSize: '10px', color: '#059669', fontWeight: 600 }}>Click to test</span>
+              <span style={{ fontSize: '10px', color: '#15803d', fontWeight: 600 }}>Click to test</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -282,8 +280,7 @@ export default function LoginPage() {
                   border: '1px solid #fde68a',
                   borderRadius: '6px',
                   textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'transform 0.1s'
+                  cursor: 'pointer'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 800, color: '#92400e' }}>
@@ -300,18 +297,17 @@ export default function LoginPage() {
                 onClick={() => handleQuickFill('lipi', 'seller123')}
                 style={{
                   padding: '9px 10px',
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
                   borderRadius: '6px',
                   textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'transform 0.1s'
+                  cursor: 'pointer'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 800, color: '#1e40af' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 800, color: '#15803d' }}>
                   <span>👤 Seller (Lipi - Sell Only)</span>
                 </div>
-                <div style={{ fontSize: '10.5px', color: '#1d4ed8', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '10.5px', color: '#166534', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                   ID: lipi | pass: seller123
                 </div>
               </button>
@@ -330,7 +326,7 @@ export default function LoginPage() {
             lineHeight: 1.5
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-              <Database size={13} color="#059669" />
+              <Database size={13} color="#15803d" />
               <span>Database-Managed Roles & Permissions</span>
             </div>
             <p style={{ margin: 0 }}>

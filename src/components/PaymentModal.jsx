@@ -51,9 +51,9 @@ export default function PaymentModal({
       name: 'Cash Payment',
       subtitle: 'Taka notes & change',
       icon: Banknote,
-      color: '#059669',
-      bg: '#ecfdf5',
-      border: '#a7f3d0'
+      color: '#15803d',
+      bg: '#f0fdf4',
+      border: '#bbf7d0'
     },
     {
       id: 'BKASH',
@@ -202,8 +202,8 @@ export default function PaymentModal({
               </div>
             )}
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>Net Payable</div>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '11px', color: '#15803d', fontWeight: 700 }}>Net Payable</div>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>
                 Tk {netPayable.toFixed(2)}
               </div>
             </div>
@@ -220,7 +220,7 @@ export default function PaymentModal({
             gap: '10px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#475569', fontSize: '12.5px', fontWeight: 600 }}>
-              <Percent size={14} color="#059669" />
+              <Percent size={14} color="#15803d" />
               <span>Discount:</span>
             </div>
             <div style={{ display: 'flex', gap: '4px' }}>
@@ -234,7 +234,7 @@ export default function PaymentModal({
                   fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
-                  background: discountType === 'flat' ? '#059669' : '#f1f5f9',
+                  background: discountType === 'flat' ? '#15803d' : '#f1f5f9',
                   color: discountType === 'flat' ? '#ffffff' : '#475569'
                 }}
               >
@@ -250,7 +250,7 @@ export default function PaymentModal({
                   fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
-                  background: discountType === 'percent' ? '#059669' : '#f1f5f9',
+                  background: discountType === 'percent' ? '#15803d' : '#f1f5f9',
                   color: discountType === 'percent' ? '#ffffff' : '#475569'
                 }}
               >
@@ -357,7 +357,7 @@ export default function PaymentModal({
                   style={{
                     width: '100%',
                     background: '#ffffff',
-                    border: '1.5px solid #059669',
+                    border: '1.5px solid #15803d',
                     borderRadius: '6px',
                     padding: '8px 12px',
                     color: '#0f172a',
@@ -381,7 +381,7 @@ export default function PaymentModal({
                     style={{
                       background: '#ffffff',
                       border: '1px solid #cbd5e1',
-                      color: '#059669',
+                      color: '#15803d',
                       padding: '4px 8px',
                       borderRadius: '4px',
                       fontSize: '11.5px',
@@ -415,7 +415,7 @@ export default function PaymentModal({
                 background: '#ffffff',
                 padding: '10px 14px',
                 borderRadius: '6px',
-                border: '1px dashed #059669',
+                border: '1px dashed #15803d',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
@@ -427,7 +427,7 @@ export default function PaymentModal({
                 <div style={{
                   fontSize: '22px',
                   fontWeight: 800,
-                  color: changeDue >= 0 ? '#059669' : '#dc2626',
+                  color: changeDue >= 0 ? '#15803d' : '#dc2626',
                   fontFamily: 'var(--font-mono)'
                 }}>
                   Tk {changeDue.toFixed(2)}
@@ -447,7 +447,7 @@ export default function PaymentModal({
               gap: '10px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={17} color="#059669" />
+                <ShieldCheck size={17} color="#15803d" />
                 <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
                   {selectedMethod} Merchant Payment
                 </span>
@@ -554,15 +554,14 @@ export default function PaymentModal({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              background: '#059669',
+              background: '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '9px 20px',
               borderRadius: '6px',
               fontSize: '13px',
               fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)'
+              cursor: 'pointer'
             }}
           >
             <span>Complete & Print Receipt</span>

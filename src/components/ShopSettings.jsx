@@ -29,7 +29,7 @@ export default function ShopSettings() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 3px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Settings size={22} color="#059669" />
+            <Settings size={22} color="#15803d" />
             <span>Store Profile & Receipt Configurations</span>
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
@@ -61,9 +61,9 @@ export default function ShopSettings() {
 
       {savedSuccess && (
         <div style={{
-          background: '#ecfdf5',
-          border: '1px solid #a7f3d0',
-          color: '#065f46',
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          color: '#15803d',
           padding: '12px 16px',
           borderRadius: '8px',
           fontSize: '13px',
@@ -92,7 +92,7 @@ export default function ShopSettings() {
         {/* Section 1: Store Identity */}
         <div>
           <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Store size={17} color="#059669" />
+            <Store size={17} color="#15803d" />
             <span>Store Header (Printed on Top of Receipt Slip)</span>
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -210,7 +210,7 @@ export default function ShopSettings() {
         {/* Section 2: Cashier & Tax */}
         <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <User size={17} color="#2563eb" />
+            <User size={17} color="#15803d" />
             <span>Active Cashier & Tax Settings</span>
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -361,15 +361,14 @@ export default function ShopSettings() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#059669',
+              background: '#15803d',
               color: '#ffffff',
               border: 'none',
               padding: '10px 22px',
               borderRadius: '6px',
               fontSize: '13.5px',
               fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)'
+              cursor: 'pointer'
             }}
           >
             <Save size={16} />
