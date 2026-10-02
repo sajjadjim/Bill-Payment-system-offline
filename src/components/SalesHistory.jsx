@@ -32,7 +32,7 @@ export default function SalesHistory() {
   const getPayTypeBadge = (type) => {
     switch (type) {
       case 'CASH':
-        return { color: '#059669', bg: '#ecfdf5', text: 'CASH' };
+        return { color: '#15803d', bg: '#f0fdf4', text: 'CASH' };
       case 'BKASH':
         return { color: '#e2136e', bg: '#fdf2f8', text: 'bKash' };
       case 'ROCKET':
@@ -52,7 +52,7 @@ export default function SalesHistory() {
       {/* Header */}
       <div>
         <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 3px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Receipt size={22} color="#059669" />
+          <Receipt size={22} color="#15803d" />
           <span>Sales Invoices & Transaction Archive</span>
         </h2>
         <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
@@ -74,12 +74,12 @@ export default function SalesHistory() {
         }}>
           <div>
             <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>Total Revenue</span>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+            <div style={{ fontSize: '22px', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
               Tk {totalRevenue.toFixed(2)}
             </div>
           </div>
-          <div style={{ background: '#ecfdf5', padding: '10px', borderRadius: '8px' }}>
-            <TrendingUp size={20} color="#059669" />
+          <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '8px' }}>
+            <TrendingUp size={20} color="#15803d" />
           </div>
         </div>
 
@@ -99,8 +99,8 @@ export default function SalesHistory() {
               {transactions.length} slips
             </div>
           </div>
-          <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '8px' }}>
-            <Receipt size={20} color="#2563eb" />
+          <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '8px' }}>
+            <Receipt size={20} color="#15803d" />
           </div>
         </div>
 
@@ -120,8 +120,8 @@ export default function SalesHistory() {
               Tk {cashSales.toFixed(2)}
             </div>
           </div>
-          <div style={{ background: '#ecfdf5', padding: '10px', borderRadius: '8px' }}>
-            <DollarSign size={20} color="#059669" />
+          <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '8px' }}>
+            <DollarSign size={20} color="#15803d" />
           </div>
         </div>
 
@@ -248,7 +248,7 @@ export default function SalesHistory() {
                           fontFamily: 'var(--font-mono)',
                           fontSize: '12px',
                           fontWeight: 700,
-                          color: '#2563eb'
+                          color: '#15803d'
                         }}>
                           {tx.invoiceNo}
                         </span>
@@ -295,7 +295,7 @@ export default function SalesHistory() {
                         </span>
                       </td>
 
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)', fontSize: '14px' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)', fontSize: '14px' }}>
                         Tk {Number(tx.netAmount).toFixed(2)}
                       </td>
 
@@ -306,7 +306,7 @@ export default function SalesHistory() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '5px',
-                            background: '#059669',
+                            background: '#15803d',
                             border: 'none',
                             color: '#ffffff',
                             padding: '5px 10px',

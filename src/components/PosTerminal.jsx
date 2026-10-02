@@ -515,10 +515,10 @@ export default function PosTerminal() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: '#1e293b' }}>
             <span><strong>Outlet :</strong> {shopSettings.outletName || "F641-Poschim Agargaon Outlet"}</span>
             <span style={{ borderLeft: '1.5px solid #94a3b8', paddingLeft: '12px' }}>
-              <strong>User :</strong> <span style={{ color: '#0924e8', fontWeight: 800 }}>{currentUser?.userId || shopSettings.servedBy || "L61627"}</span>
+              <strong>User :</strong> <span style={{ color: '#15803d', fontWeight: 800 }}>{currentUser?.userId || shopSettings.servedBy || "L61627"}</span>
             </span>
             <span style={{ borderLeft: '1.5px solid #94a3b8', paddingLeft: '12px' }}>
-              <strong>Version :</strong> <span style={{ color: '#0924e8' }}>{shopSettings.softwareVersion || "2.0.1"}</span>
+              <strong>Version :</strong> <span style={{ color: '#15803d' }}>{shopSettings.softwareVersion || "2.0.1"}</span>
             </span>
           </div>
         </div>
@@ -527,7 +527,7 @@ export default function PosTerminal() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <span><strong>Terminal :</strong> {shopSettings.terminalId || "F641POS1N"}</span>
           <span style={{ borderLeft: '1.5px solid #94a3b8', paddingLeft: '12px' }}>
-            <strong>Last Invoice # :</strong> <span style={{ color: '#059669', fontFamily: 'monospace', fontWeight: 800, fontSize: '13.5px' }}>{shopSettings.lastInvoiceNo || "F6412610010083"}</span>
+            <strong>Last Invoice # :</strong> <span style={{ color: '#15803d', fontFamily: 'monospace', fontWeight: 800, fontSize: '13.5px' }}>{shopSettings.lastInvoiceNo || "F6412610010083"}</span>
           </span>
           <span style={{
             background: '#f1f5f9',
@@ -535,7 +535,7 @@ export default function PosTerminal() {
             padding: '2px 10px',
             borderRadius: '4px',
             fontWeight: 800,
-            color: '#0924e8',
+            color: '#15803d',
             fontFamily: 'monospace',
             fontSize: '13px'
           }}>
@@ -549,15 +549,14 @@ export default function PosTerminal() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#047857',
+              background: '#15803d',
               color: '#ffffff',
-              border: '1px solid #065f46',
+              border: 'none',
               padding: '4px 10px',
               borderRadius: '4px',
               fontSize: '12.5px',
               fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
+              cursor: 'pointer'
             }}
             title="Open Products Catalog [F2]"
           >
@@ -586,14 +585,14 @@ export default function PosTerminal() {
           <form onSubmit={handleBarcodeSubmit} style={{ width: '100%', position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{
-                background: '#0924e8',
+                background: '#15803d',
                 color: '#ffffff',
                 fontSize: '12px',
                 fontWeight: 800,
                 padding: '7px 10px',
                 borderRadius: '3px 0 0 3px',
                 whiteSpace: 'nowrap',
-                border: '1px solid #0924e8',
+                border: '1px solid #15803d',
                 borderRight: 'none'
               }}>
                 Item Code/Barcode
@@ -628,9 +627,9 @@ export default function PosTerminal() {
                 type="submit"
                 style={{
                   marginLeft: '6px',
-                  background: '#059669',
+                  background: '#15803d',
                   color: '#ffffff',
-                  border: '1px solid #047857',
+                  border: '1px solid #166534',
                   padding: '6px 12px',
                   borderRadius: '3px',
                   fontSize: '13px',
@@ -651,7 +650,7 @@ export default function PosTerminal() {
                 right: 0,
                 zIndex: 100,
                 background: '#ffffff',
-                border: '1.5px solid #0924e8',
+                border: '1.5px solid #15803d',
                 boxShadow: '0 8px 16px rgba(0,0,0,0.25)',
                 borderRadius: '0 0 6px 6px',
                 maxHeight: '260px',
@@ -670,16 +669,16 @@ export default function PosTerminal() {
                       cursor: 'pointer',
                       fontSize: '13.5px'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#e0f2fe'}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'}
                     onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
                   >
                     <div>
                       <strong style={{ color: '#0f172a' }}>{p.name}</strong>
-                      <span style={{ marginLeft: '10px', color: '#0924e8', fontFamily: 'monospace', fontSize: '13px' }}>
+                      <span style={{ marginLeft: '10px', color: '#15803d', fontFamily: 'monospace', fontSize: '13px' }}>
                         [{p.barcode}]
                       </span>
                     </div>
-                    <div style={{ fontWeight: 800, color: '#059669', fontFamily: 'monospace', fontSize: '14px' }}>
+                    <div style={{ fontWeight: 800, color: '#15803d', fontFamily: 'monospace', fontSize: '14px' }}>
                       Tk {p.price.toFixed(2)}
                     </div>
                   </div>
@@ -694,7 +693,7 @@ export default function PosTerminal() {
           
           {/* Mobile # Input (Optional - left empty by default) with Quick Demo Selector */}
           <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '3px' }}>
-            <span style={{ background: '#0924e8', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>Mobile #</span>
+            <span style={{ background: '#15803d', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>Mobile #</span>
             <input
               type="text"
               value={customerPhone}
@@ -709,11 +708,11 @@ export default function PosTerminal() {
                 outline: 'none',
                 width: '110px',
                 fontFamily: 'monospace',
-                color: customerLoyalty.found ? '#065f46' : '#0f172a'
+                color: customerLoyalty.found ? '#166534' : '#0f172a'
               }}
             />
             {/* Quick Demo Customer Selector */}
-            <select
+            {/* <select
               onChange={(e) => {
                 if (e.target.value) {
                   setCustomerPhone(e.target.value);
@@ -721,13 +720,13 @@ export default function PosTerminal() {
               }}
               value=""
               style={{
-                background: '#eff6ff',
+                background: '#f0fdf4',
                 border: 'none',
-                borderLeft: '1px solid #bfdbfe',
+                borderLeft: '1px solid #bbf7d0',
                 padding: '5px 6px',
                 fontSize: '11px',
                 fontWeight: 800,
-                color: '#1d4ed8',
+                color: '#15803d',
                 cursor: 'pointer',
                 outline: 'none'
               }}
@@ -739,18 +738,18 @@ export default function PosTerminal() {
               <option value="01620754986">01620754986 (Sajjad - 500 Pts / ৳375)</option>
               <option value="01912345678">01912345678 (Tanvir - 350 Pts / ৳262)</option>
               <option value="01899887766">01899887766 (Sadia - 150 Pts / ৳112)</option>
-            </select>
+            </select> */}
           </div>
 
           {/* Points Display (Live from database, valid within 3 months) */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            background: customerLoyalty.validPoints > 0 ? '#ecfdf5' : '#ffffff',
-            border: `1.5px solid ${customerLoyalty.validPoints > 0 ? '#10b981' : '#cbd5e1'}`,
+            background: customerLoyalty.validPoints > 0 ? '#f0fdf4' : '#ffffff',
+            border: `1.5px solid ${customerLoyalty.validPoints > 0 ? '#15803d' : '#cbd5e1'}`,
             borderRadius: '3px'
           }}>
-            <span style={{ background: '#0924e8', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>
+            <span style={{ background: '#15803d', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>
               Points
             </span>
             <span style={{
@@ -760,7 +759,7 @@ export default function PosTerminal() {
               fontSize: '14px',
               minWidth: '40px',
               textAlign: 'center',
-              color: customerLoyalty.validPoints > 0 ? '#047857' : '#0f172a'
+              color: customerLoyalty.validPoints > 0 ? '#15803d' : '#0f172a'
             }}>
               {customerLoyalty.validPoints}
             </span>
@@ -770,11 +769,11 @@ export default function PosTerminal() {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            background: customerLoyalty.discountTaka > 0 ? '#eff6ff' : '#ffffff',
-            border: `1.5px solid ${customerLoyalty.discountTaka > 0 ? '#3b82f6' : '#cbd5e1'}`,
+            background: customerLoyalty.discountTaka > 0 ? '#f0fdf4' : '#ffffff',
+            border: `1.5px solid ${customerLoyalty.discountTaka > 0 ? '#15803d' : '#cbd5e1'}`,
             borderRadius: '3px'
           }}>
-            <span style={{ background: '#0924e8', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>
+            <span style={{ background: '#15803d', color: '#ffffff', padding: '5px 8px', fontWeight: 800, fontSize: '12px' }}>
               Amount
             </span>
             <span style={{
@@ -784,7 +783,7 @@ export default function PosTerminal() {
               fontSize: '14px',
               minWidth: '55px',
               textAlign: 'center',
-              color: customerLoyalty.discountTaka > 0 ? '#1d4ed8' : '#0f172a'
+              color: customerLoyalty.discountTaka > 0 ? '#15803d' : '#0f172a'
             }}>
               {customerLoyalty.discountTaka.toFixed(1)}
             </span>
@@ -795,7 +794,7 @@ export default function PosTerminal() {
             <button
               onClick={handleToggleRedeemPoints}
               style={{
-                background: pointsRedeemed > 0 ? '#dc2626' : '#2563eb',
+                background: pointsRedeemed > 0 ? '#dc2626' : '#15803d',
                 color: '#ffffff',
                 border: 'none',
                 padding: '5px 10px',
@@ -806,7 +805,7 @@ export default function PosTerminal() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
               }}
               title="100 Points = 75 Taka discount product value (Valid 3 months)"
             >
@@ -851,7 +850,7 @@ export default function PosTerminal() {
         {/* Held Invoices Slots (Slot 1 to Slot 5) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#1e293b', fontWeight: 800 }}>
-            <Layers size={15} color="#0924e8" />
+            <Layers size={15} color="#15803d" />
             <span>Multiple Customer Hold / Recall ({heldInvoices.length}/5):</span>
           </div>
 
@@ -918,8 +917,8 @@ export default function PosTerminal() {
             <button
               onClick={() => handleRecallSlot(heldInvoices[0].slot)}
               style={{
-                background: '#0924e8',
-                border: '1px solid #071bb5',
+                background: '#15803d',
+                border: '1px solid #166534',
                 color: '#ffffff',
                 padding: '4px 10px',
                 borderRadius: '3px',
@@ -1540,8 +1539,8 @@ export default function PosTerminal() {
                 onClick={() => setActiveTab('products')}
                 style={{
                   flex: 1.3,
-                  background: '#047857',
-                  border: '1.5px solid #065f46',
+                  background: '#15803d',
+                  border: '1.5px solid #166534',
                   color: '#ffffff',
                   padding: '7px',
                   borderRadius: '3px',
@@ -1663,7 +1662,7 @@ export default function PosTerminal() {
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#059669', color: '#ffffff', fontWeight: 800, fontSize: '13px' }}
+                  style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#15803d', color: '#ffffff', fontWeight: 800, fontSize: '13px' }}
                 >
                   Add to Bill
                 </button>
@@ -1767,7 +1766,7 @@ export default function PosTerminal() {
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#059669', color: '#ffffff', fontWeight: 800, fontSize: '13px' }}
+                  style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', background: '#15803d', color: '#ffffff', fontWeight: 800, fontSize: '13px' }}
                 >
                   Save & Add
                 </button>
@@ -1801,12 +1800,12 @@ export default function PosTerminal() {
             width: '440px',
             maxWidth: '95vw',
             boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            border: '2px solid #059669',
+            border: '2px solid #15803d',
             overflow: 'hidden'
           }}>
             {/* Modal Header */}
             <div style={{
-              background: '#059669',
+              background: '#15803d',
               color: '#ffffff',
               padding: '14px 18px',
               display: 'flex',
@@ -1860,7 +1859,7 @@ export default function PosTerminal() {
                     fontSize: '16px',
                     fontWeight: 800,
                     borderRadius: '6px',
-                    border: '2px solid #059669',
+                    border: '2px solid #15803d',
                     background: '#f8fafc',
                     color: '#0f172a',
                     cursor: 'pointer',
@@ -1880,14 +1879,14 @@ export default function PosTerminal() {
                   style={{
                     padding: '12px 10px',
                     borderRadius: '8px',
-                    border: bagChoice === 'No' ? '2.5px solid #059669' : '1.5px solid #cbd5e1',
-                    background: bagChoice === 'No' ? '#ecfdf5' : '#ffffff',
+                    border: bagChoice === 'No' ? '2px solid #15803d' : '1.5px solid #cbd5e1',
+                    background: bagChoice === 'No' ? '#f0fdf4' : '#ffffff',
                     cursor: 'pointer',
                     textAlign: 'center',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <div style={{ fontSize: '18px', fontWeight: 900, color: bagChoice === 'No' ? '#059669' : '#64748b' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: bagChoice === 'No' ? '#15803d' : '#64748b' }}>
                     No (না)
                   </div>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginTop: '2px' }}>
@@ -1901,14 +1900,14 @@ export default function PosTerminal() {
                   style={{
                     padding: '12px 10px',
                     borderRadius: '8px',
-                    border: bagChoice === 'Yes' ? '2.5px solid #2563eb' : '1.5px solid #cbd5e1',
-                    background: bagChoice === 'Yes' ? '#eff6ff' : '#ffffff',
+                    border: bagChoice === 'Yes' ? '2px solid #15803d' : '1.5px solid #cbd5e1',
+                    background: bagChoice === 'Yes' ? '#f0fdf4' : '#ffffff',
                     cursor: 'pointer',
                     textAlign: 'center',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <div style={{ fontSize: '18px', fontWeight: 900, color: bagChoice === 'Yes' ? '#2563eb' : '#64748b' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: bagChoice === 'Yes' ? '#15803d' : '#64748b' }}>
                     Yes (হ্যাঁ)
                   </div>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: '#b45309', marginTop: '2px' }}>
@@ -1926,11 +1925,11 @@ export default function PosTerminal() {
                 border: '1px solid #e2e8f0',
                 fontSize: '13px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', borderTop: 'none', justifyContent: 'space-between', color: '#64748b', marginBottom: '4px' }}>
                   <span>Items Subtotal:</span>
                   <span style={{ fontWeight: 700 }}>৳ {payableAmount.toFixed(2)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: bagChoice === 'Yes' ? '#2563eb' : '#64748b', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: bagChoice === 'Yes' ? '#15803d' : '#64748b', marginBottom: '6px' }}>
                   <span>Bag Charge (ব্যাগ মূল্য):</span>
                   <span style={{ fontWeight: 800 }}>{bagChoice === 'Yes' ? '+৳ 20.00' : '৳ 0.00'}</span>
                 </div>
@@ -1944,7 +1943,7 @@ export default function PosTerminal() {
                   color: '#0f172a'
                 }}>
                   <span>Final Bill Total:</span>
-                  <span style={{ color: '#059669', fontSize: '17px' }}>
+                  <span style={{ color: '#15803d', fontSize: '17px' }}>
                     ৳ {(payableAmount + (bagChoice === 'Yes' ? 20 : 0)).toFixed(2)}
                   </span>
                 </div>
@@ -1976,7 +1975,7 @@ export default function PosTerminal() {
                     padding: '11px',
                     borderRadius: '6px',
                     border: 'none',
-                    background: '#059669',
+                    background: '#15803d',
                     color: '#ffffff',
                     fontSize: '15px',
                     fontWeight: 900,
@@ -1984,8 +1983,7 @@ export default function PosTerminal() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 6px rgba(5,150,105,0.3)'
+                    gap: '8px'
                   }}
                 >
                   <Printer size={18} />

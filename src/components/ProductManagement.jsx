@@ -383,7 +383,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 3px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Package size={22} color="#059669" />
+            <Package size={22} color="#15803d" />
             <span>Product Catalog, Brands & Bulk Discounts</span>
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
@@ -398,15 +398,14 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#047857',
+              background: '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '8px 14px',
               borderRadius: '6px',
               fontSize: '12.5px',
               fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 5px rgba(4,120,87,0.25)'
+              cursor: 'pointer'
             }}
             title="Return to POS Billing [F1]"
           >
@@ -419,9 +418,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#eff6ff',
-              border: '1px solid #bfdbfe',
-              color: '#2563eb',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              color: '#15803d',
               padding: '8px 14px',
               borderRadius: '6px',
               fontSize: '12.5px',
@@ -460,15 +459,14 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: isSyncingToDb ? '#94a3b8' : '#0284c7',
+              background: isSyncingToDb ? '#94a3b8' : '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '9px 15px',
               borderRadius: '6px',
               fontSize: '13px',
               fontWeight: 800,
-              cursor: isSyncingToDb ? 'wait' : 'pointer',
-              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+              cursor: isSyncingToDb ? 'wait' : 'pointer'
             }}
             title="Upload/Sync all catalog products to Supabase Database"
           >
@@ -482,15 +480,14 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              background: '#059669',
+              background: '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '9px 18px',
               borderRadius: '6px',
               fontSize: '13px',
               fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)'
+              cursor: 'pointer'
             }}
           >
             <Plus size={17} />
@@ -502,19 +499,18 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
       {/* Sync Status Banner */}
       {dbSyncMsg && (
         <div style={{
-          background: '#ecfdf5',
-          border: '1.5px solid #059669',
-          color: '#065f46',
+          background: '#f0fdf4',
+          border: '1.5px solid #15803d',
+          color: '#15803d',
           padding: '10px 16px',
           borderRadius: '8px',
           fontWeight: 800,
           fontSize: '13.5px',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+          gap: '8px'
         }}>
-          <Check size={18} color="#059669" />
+          <Check size={18} color="#15803d" />
           <span>{dbSyncMsg}</span>
         </div>
       )}
@@ -522,8 +518,8 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
       {/* MULTI-PRODUCT BULK DISCOUNT TOOLBAR */}
       {(selectedProductIds.length > 0 || isAdmin) && (
         <div style={{
-          background: selectedProductIds.length > 0 ? '#ecfdf5' : '#ffffff',
-          border: selectedProductIds.length > 0 ? '1.5px solid #059669' : '1px solid #e2e8f0',
+          background: selectedProductIds.length > 0 ? '#f0fdf4' : '#ffffff',
+          border: selectedProductIds.length > 0 ? '1.5px solid #15803d' : '1px solid #e2e8f0',
           borderRadius: '10px',
           padding: '12px 18px',
           display: 'flex',
@@ -536,14 +532,14 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={18} color="#059669" />
+              <Sparkles size={18} color="#15803d" />
               <strong style={{ fontSize: '13px', color: '#0f172a' }}>
                 Multi-Product Discount Engine:
               </strong>
             </div>
 
             <span style={{
-              background: selectedProductIds.length > 0 ? '#059669' : '#f1f5f9',
+              background: selectedProductIds.length > 0 ? '#15803d' : '#f1f5f9',
               color: selectedProductIds.length > 0 ? '#ffffff' : '#64748b',
               fontSize: '11.5px',
               fontWeight: 800,
@@ -564,7 +560,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                   style={{
                     background: '#ffffff',
                     border: '1px solid #cbd5e1',
-                    color: '#2563eb',
+                    color: '#15803d',
                     padding: '3px 7px',
                     borderRadius: '4px',
                     fontSize: '11px',
@@ -588,7 +584,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                   padding: '4px 8px',
                   borderRadius: '4px',
                   border: 'none',
-                  background: bulkDiscountType === 'percent' ? '#059669' : 'transparent',
+                  background: bulkDiscountType === 'percent' ? '#15803d' : 'transparent',
                   color: bulkDiscountType === 'percent' ? '#ffffff' : '#475569',
                   fontSize: '11px',
                   fontWeight: 700,
@@ -604,7 +600,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                   padding: '4px 8px',
                   borderRadius: '4px',
                   border: 'none',
-                  background: bulkDiscountType === 'flat' ? '#059669' : 'transparent',
+                  background: bulkDiscountType === 'flat' ? '#15803d' : 'transparent',
                   color: bulkDiscountType === 'flat' ? '#ffffff' : '#475569',
                   fontSize: '11px',
                   fontWeight: 700,
@@ -639,7 +635,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               onClick={handleApplyBulkDiscount}
               disabled={selectedProductIds.length === 0}
               style={{
-                background: selectedProductIds.length > 0 ? '#059669' : '#cbd5e1',
+                background: selectedProductIds.length > 0 ? '#15803d' : '#cbd5e1',
                 color: '#ffffff',
                 border: 'none',
                 padding: '7px 14px',
@@ -713,7 +709,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
 
         {/* Company / Brand Filter Dropdown */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Building2 size={16} color="#2563eb" />
+          <Building2 size={16} color="#15803d" />
           <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Brand:</span>
           <select
             value={filterBrand}
@@ -772,7 +768,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               borderRadius: '5px',
               border: 'none',
               background: viewLayout === 'row' ? '#ffffff' : 'transparent',
-              color: viewLayout === 'row' ? '#059669' : '#64748b',
+              color: viewLayout === 'row' ? '#15803d' : '#64748b',
               fontWeight: viewLayout === 'row' ? 700 : 600,
               fontSize: '12px',
               cursor: 'pointer',
@@ -795,7 +791,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               borderRadius: '5px',
               border: 'none',
               background: viewLayout === 'grid' ? '#ffffff' : 'transparent',
-              color: viewLayout === 'grid' ? '#059669' : '#64748b',
+              color: viewLayout === 'grid' ? '#15803d' : '#64748b',
               fontWeight: viewLayout === 'grid' ? 700 : 600,
               fontSize: '12px',
               cursor: 'pointer',
@@ -818,7 +814,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
               borderRadius: '5px',
               border: 'none',
               background: viewLayout === 'column' ? '#ffffff' : 'transparent',
-              color: viewLayout === 'column' ? '#059669' : '#64748b',
+              color: viewLayout === 'column' ? '#15803d' : '#64748b',
               fontWeight: viewLayout === 'column' ? 700 : 600,
               fontSize: '12px',
               cursor: 'pointer',
@@ -927,11 +923,11 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                             fontFamily: 'var(--font-mono)',
                             fontSize: '11px',
                             fontWeight: 800,
-                            color: '#059669',
-                            background: '#ecfdf5',
+                            color: '#15803d',
+                            background: '#f0fdf4',
                             padding: '2px 5px',
                             borderRadius: '4px',
-                            border: '1px solid #a7f3d0'
+                            border: '1px solid #bbf7d0'
                           }}>
                             #{p.slNo}
                           </span>
@@ -973,7 +969,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                             <strong style={{ color: '#0f172a', display: 'block', fontSize: '13px' }}>{p.name}</strong>
                             <span style={{ fontSize: '11px', color: '#64748b' }}>Unit: {p.unit || 'pcs'} • {p.category}</span>
                             {p.description && (
-                              <span style={{ fontSize: '10.5px', color: '#2563eb', display: 'block', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
+                              <span style={{ fontSize: '10.5px', color: '#15803d', display: 'block', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '280px' }}>
                                 📝 {p.description}
                               </span>
                             )}
@@ -983,13 +979,13 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                         {/* Company / Brand Badge (from database brand column) */}
                         <td style={{ padding: '10px 14px' }}>
                           <span style={{
-                            background: '#eff6ff',
-                            color: '#1d4ed8',
+                            background: '#f0fdf4',
+                            color: '#15803d',
                             fontSize: '11.5px',
                             fontWeight: 700,
                             padding: '3px 8px',
                             borderRadius: '4px',
-                            border: '1px solid #bfdbfe',
+                            border: '1px solid #bbf7d0',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px'
@@ -1031,7 +1027,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                         </td>
 
                         {/* After Discount Price */}
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)', fontSize: '14px' }}>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)', fontSize: '14px' }}>
                           Tk {pricing.finalPrice.toFixed(0)}
                         </td>
 
@@ -1071,9 +1067,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                                 }
                               }}
                               style={{
-                                background: p.stock <= 0 ? '#fee2e2' : isLow ? '#fef3c7' : '#ecfdf5',
-                                color: p.stock <= 0 ? '#dc2626' : isLow ? '#d97706' : '#059669',
-                                border: `1px solid ${p.stock <= 0 ? '#fecaca' : isLow ? '#fde68a' : '#a7f3d0'}`,
+                                background: p.stock <= 0 ? '#fee2e2' : isLow ? '#fef3c7' : '#f0fdf4',
+                                color: p.stock <= 0 ? '#dc2626' : isLow ? '#d97706' : '#15803d',
+                                border: `1px solid ${p.stock <= 0 ? '#fecaca' : isLow ? '#fde68a' : '#bbf7d0'}`,
                                 padding: '3px 8px',
                                 borderRadius: '4px',
                                 fontSize: '11.5px',
@@ -1131,7 +1127,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                               }}
                               title="View In-Depth Information & Description"
                             >
-                              <Eye size={13} color="#2563eb" />
+                              <Eye size={13} color="#15803d" />
                               <span>Details</span>
                             </button>
 
@@ -1139,9 +1135,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                               <button
                                 onClick={() => handleOpenEdit(p)}
                                 style={{
-                                  background: '#eff6ff',
-                                  border: '1.5px solid #bfdbfe',
-                                  color: '#1d4ed8',
+                                  background: '#ffffff',
+                                  border: '1px solid #cbd5e1',
+                                  color: '#334155',
                                   padding: '6px 10px',
                                   borderRadius: '5px',
                                   cursor: 'pointer',
@@ -1195,7 +1191,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                   key={p.id}
                   style={{
                     background: '#ffffff',
-                    border: isSelected ? '2px solid #059669' : '1px solid #e2e8f0',
+                    border: isSelected ? '2px solid #15803d' : '1px solid #e2e8f0',
                     borderRadius: '12px',
                     overflow: 'hidden',
                     display: 'flex',
@@ -1228,13 +1224,13 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
 
                     {/* Brand Badge from database brand column */}
                     <span style={{
-                      background: '#eff6ff',
-                      color: '#1d4ed8',
+                      background: '#f0fdf4',
+                      color: '#15803d',
                       fontSize: '11px',
                       fontWeight: 800,
                       padding: '2px 8px',
                       borderRadius: '4px',
-                      border: '1px solid #bfdbfe',
+                      border: '1px solid #bbf7d0',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px'
@@ -1339,7 +1335,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                             Tk {pricing.originalPrice.toFixed(0)}
                           </span>
                         )}
-                        <span style={{ fontSize: '16px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '16px', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>
                           Tk {pricing.finalPrice.toFixed(0)}
                         </span>
                       </div>
@@ -1349,8 +1345,8 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        background: isOutOfStock ? '#fee2e2' : isLow ? '#fef3c7' : '#ecfdf5',
-                        color: isOutOfStock ? '#dc2626' : isLow ? '#d97706' : '#059669'
+                        background: isOutOfStock ? '#fee2e2' : isLow ? '#fef3c7' : '#f0fdf4',
+                        color: isOutOfStock ? '#dc2626' : isLow ? '#d97706' : '#15803d'
                       }}>
                         {isOutOfStock ? '0 in stock' : `${p.stock} ${p.unit || 'pcs'}`}
                       </span>
@@ -1384,7 +1380,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                         cursor: 'pointer'
                       }}
                     >
-                      <Eye size={13} color="#2563eb" />
+                      <Eye size={13} color="#15803d" />
                       <span>Details</span>
                     </button>
 
@@ -1398,9 +1394,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: '4px',
-                          background: '#eff6ff',
-                          border: '1px solid #bfdbfe',
-                          color: '#1d4ed8',
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
+                          color: '#334155',
                           padding: '6px',
                           borderRadius: '5px',
                           fontSize: '11.5px',
@@ -1446,7 +1442,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                   key={p.id}
                   style={{
                     background: '#ffffff',
-                    border: isSelected ? '2px solid #059669' : '1px solid #e2e8f0',
+                    border: isSelected ? '2px solid #15803d' : '1px solid #e2e8f0',
                     borderRadius: '10px',
                     padding: '10px 12px',
                     display: 'flex',
@@ -1494,13 +1490,13 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                       {/* Brand from database brand column */}
                       <span style={{
-                        background: '#eff6ff',
-                        color: '#1d4ed8',
+                        background: '#f0fdf4',
+                        color: '#15803d',
                         fontSize: '10.5px',
                         fontWeight: 800,
                         padding: '1px 6px',
                         borderRadius: '3px',
-                        border: '1px solid #bfdbfe'
+                        border: '1px solid #bbf7d0'
                       }}>
                         {p.brand || 'General'}
                       </span>
@@ -1541,7 +1537,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontFamily: 'var(--font-mono)' }}>{p.barcode}</span>
                       <span>•</span>
-                      <span>Stock: <strong style={{ color: isOutOfStock ? '#dc2626' : isLow ? '#d97706' : '#059669' }}>{p.stock}</strong> {p.unit || 'pcs'}</span>
+                      <span>Stock: <strong style={{ color: isOutOfStock ? '#dc2626' : isLow ? '#d97706' : '#15803d' }}>{p.stock}</strong> {p.unit || 'pcs'}</span>
                     </div>
                   </div>
 
@@ -1553,7 +1549,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                           Tk {pricing.originalPrice.toFixed(0)}
                         </span>
                       )}
-                      <span style={{ fontSize: '15px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+                      <span style={{ fontSize: '15px', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>
                         Tk {pricing.finalPrice.toFixed(0)}
                       </span>
                     </div>
@@ -1574,7 +1570,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                         }}
                         title="View In-Depth Specifications"
                       >
-                        <Eye size={12} color="#2563eb" />
+                        <Eye size={12} color="#15803d" />
                       </button>
 
                       {isAdmin && (
@@ -1582,9 +1578,9 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                           type="button"
                           onClick={() => handleOpenEdit(p)}
                           style={{
-                            background: '#eff6ff',
-                            border: '1px solid #bfdbfe',
-                            color: '#1d4ed8',
+                            background: '#ffffff',
+                            border: '1px solid #cbd5e1',
+                            color: '#334155',
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '11px',
@@ -1689,7 +1685,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#2563eb',
+                        color: '#15803d',
                         fontSize: '11px',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -1709,8 +1705,8 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                       onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
                       style={{
                         width: '100%',
-                        background: '#eff6ff',
-                        border: '1.5px solid #2563eb',
+                        background: '#f0fdf4',
+                        border: '1.5px solid #15803d',
                         borderRadius: '6px',
                         padding: '8px 10px',
                         color: '#0f172a',
@@ -1761,7 +1757,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#059669',
+                        color: '#15803d',
                         fontSize: '11px',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -1782,7 +1778,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                       style={{
                         width: '100%',
                         background: '#f0fdf4',
-                        border: '1.5px solid #059669',
+                        border: '1.5px solid #15803d',
                         borderRadius: '6px',
                         padding: '8px 10px',
                         color: '#0f172a',
@@ -1834,7 +1830,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#2563eb',
+                      color: '#15803d',
                       fontSize: '11px',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -1915,10 +1911,10 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                       style={{
                         width: '100%',
                         background: '#ffffff',
-                        border: '1.5px solid #059669',
+                        border: '1.5px solid #15803d',
                         borderRadius: '6px',
                         padding: '8px 10px',
-                        color: '#059669',
+                        color: '#15803d',
                         fontSize: '14px',
                         fontWeight: 800,
                         outline: 'none'
@@ -2032,7 +2028,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     color: '#475569',
                     fontWeight: 600
                   }}>
-                    <Upload size={15} color="#059669" />
+                    <Upload size={15} color="#15803d" />
                     <span>{isCompressing ? 'Compressing under 150 KB...' : 'Upload Real Image'}</span>
                     <input
                       type="file"
@@ -2048,7 +2044,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                       height: '44px',
                       borderRadius: '6px',
                       overflow: 'hidden',
-                      border: '1px solid #059669',
+                      border: '1px solid #15803d',
                       background: '#ffffff'
                     }}>
                       <img src={formData.image} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -2130,7 +2126,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                 <button
                   type="submit"
                   style={{
-                    background: '#059669',
+                    background: '#15803d',
                     border: 'none',
                     color: '#ffffff',
                     padding: '8px 18px',
@@ -2203,7 +2199,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Database size={20} color="#2563eb" />
+                <Database size={20} color="#15803d" />
                 <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                   Supabase Database Setup (Copy & Run SQL)
                 </h3>
@@ -2232,7 +2228,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
             />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
-              <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>
+              <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 700 }}>
                 ✓ Connected to bbmfbdxuvptemeewadnq.supabase.co
               </span>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -2242,7 +2238,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     alert("SQL copied to clipboard!");
                   }}
                   style={{
-                    background: '#2563eb',
+                    background: '#15803d',
                     border: 'none',
                     color: '#ffffff',
                     padding: '8px 16px',
@@ -2260,7 +2256,7 @@ export default function ProductManagement({ isAddModalOpen, setIsAddModalOpen })
                     setIsSqlModalOpen(false);
                   }}
                   style={{
-                    background: '#059669',
+                    background: '#166534',
                     border: 'none',
                     color: '#ffffff',
                     padding: '8px 16px',
@@ -2371,12 +2367,12 @@ function ProductDetailsModal({
               width: '32px',
               height: '32px',
               borderRadius: '8px',
-              background: '#eff6ff',
-              border: '1px solid #bfdbfe',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#2563eb'
+              color: '#15803d'
             }}>
               <Info size={18} />
             </div>
@@ -2495,9 +2491,9 @@ function ProductDetailsModal({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
                   {/* Brand Name directly from database brand column */}
                   <span style={{
-                    background: '#eff6ff',
-                    color: '#1d4ed8',
-                    border: '1.5px solid #bfdbfe',
+                    background: '#f0fdf4',
+                    color: '#15803d',
+                    border: '1px solid #bbf7d0',
                     padding: '3px 10px',
                     borderRadius: '6px',
                     fontSize: '12.5px',
@@ -2561,8 +2557,8 @@ function ProductDetailsModal({
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700, display: 'block' }}>Customer Billing Price:</span>
-                  <span style={{ fontSize: '20px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+                  <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 700, display: 'block' }}>Customer Billing Price:</span>
+                  <span style={{ fontSize: '20px', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>
                     Tk {pricing.finalPrice.toFixed(2)}
                   </span>
                 </div>
@@ -2579,7 +2575,7 @@ function ProductDetailsModal({
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569', fontFamily: 'var(--font-mono)' }}>
                     {product.costPrice ? `Tk ${Number(product.costPrice).toFixed(2)}` : 'N/A'}
                     {marginPerUnit && (
-                      <span style={{ fontSize: '11px', color: '#2563eb', marginLeft: '6px' }}>
+                      <span style={{ fontSize: '11px', color: '#15803d', marginLeft: '6px' }}>
                         (Profit: +Tk {marginPerUnit})
                       </span>
                     )}
@@ -2602,7 +2598,7 @@ function ProductDetailsModal({
                   <span style={{ fontSize: '12.5px', color: '#334155', fontWeight: 600 }}>Current Available Stock:</span>
                   <strong style={{
                     fontSize: '13px',
-                    color: isOutOfStock ? '#dc2626' : isLowStock ? '#d97706' : '#059669'
+                    color: isOutOfStock ? '#dc2626' : isLowStock ? '#d97706' : '#15803d'
                   }}>
                     {isOutOfStock ? '0 (Out of Stock)' : `${product.stock} ${product.unit || 'pcs'}`}
                   </strong>
@@ -2677,7 +2673,7 @@ function ProductDetailsModal({
                 gap: '6px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a' }}>
-                  <FileText size={15} color="#2563eb" />
+                  <FileText size={15} color="#15803d" />
                   <strong style={{ fontSize: '12.5px' }}>Product Description / বিবরন</strong>
                 </div>
                 <div style={{
@@ -2709,15 +2705,14 @@ function ProductDetailsModal({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#059669',
+              background: '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '8px 16px',
               borderRadius: '6px',
               fontSize: '12.5px',
               fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(5,150,105,0.25)'
+              cursor: 'pointer'
             }}
           >
             <ShoppingCart size={15} />
@@ -2733,9 +2728,9 @@ function ProductDetailsModal({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#eff6ff',
-                  border: '1.5px solid #bfdbfe',
-                  color: '#1d4ed8',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  color: '#334155',
                   padding: '8px 16px',
                   borderRadius: '6px',
                   fontSize: '12.5px',
@@ -2887,7 +2882,7 @@ function BarcodeLabelModal({ product, shopName, onClose }) {
             onClick={() => window.print()}
             style={{
               flex: 1,
-              background: '#059669',
+              background: '#15803d',
               border: 'none',
               color: '#ffffff',
               padding: '8px',

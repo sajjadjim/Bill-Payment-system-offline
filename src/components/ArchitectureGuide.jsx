@@ -20,7 +20,7 @@ export default function ArchitectureGuide() {
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
       }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ecfdf5', color: '#059669', padding: '4px 10px', borderRadius: '16px', fontSize: '11.5px', fontWeight: 800, marginBottom: '12px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f0fdf4', color: '#15803d', padding: '4px 10px', borderRadius: '16px', fontSize: '11.5px', fontWeight: 800, marginBottom: '12px' }}>
           <Zap size={14} />
           <span>PRODUCTION POS ARCHITECTURE</span>
         </div>
@@ -48,8 +48,8 @@ export default function ArchitectureGuide() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ background: '#eff6ff', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Cpu size={18} color="#2563eb" />
+            <div style={{ background: '#f0fdf4', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Cpu size={18} color="#15803d" />
             </div>
             <div>
               <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
@@ -81,8 +81,8 @@ export default function ArchitectureGuide() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ background: '#ecfdf5', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Database size={18} color="#059669" />
+            <div style={{ background: '#f0fdf4', width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Database size={18} color="#15803d" />
             </div>
             <div>
               <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
@@ -147,20 +147,20 @@ export default function ArchitectureGuide() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
       }}>
         <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 14px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Laptop size={18} color="#059669" />
+          <Laptop size={18} color="#15803d" />
           <span>Hardware & Peripherals Setup</span>
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <strong style={{ color: '#2563eb', display: 'block', marginBottom: '4px', fontSize: '13px' }}>1. Barcode Scanners</strong>
+            <strong style={{ color: '#15803d', display: 'block', marginBottom: '4px', fontSize: '13px' }}>1. Barcode Scanners</strong>
             <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
               Any USB or Bluetooth handheld barcode reader operates as a keyboard HID. When you scan a product barcode, it automatically feeds into the active invoice and adds the item instantly.
             </p>
           </div>
 
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <strong style={{ color: '#059669', display: 'block', marginBottom: '4px', fontSize: '13px' }}>2. Thermal Slip Printers</strong>
+            <strong style={{ color: '#15803d', display: 'block', marginBottom: '4px', fontSize: '13px' }}>2. Thermal Slip Printers</strong>
             <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
               Supports standard 58mm & 80mm thermal receipt printers via USB or LAN, rendering the Grace Super Shop receipt layout.
             </p>

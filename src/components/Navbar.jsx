@@ -68,7 +68,7 @@ export default function Navbar({ onOpenAddProduct }) {
     return () => window.removeEventListener('keydown', handleKeys);
   }, [viewMode, isAdmin, setActiveTab]);
 
-  // Determine navigation items depending on whether this is the POS Billing page or Store page
+  // Navigation items: Grocery store themed
   const navItems = viewMode === 'store'
     ? [
         { id: 'products', label: 'Products Catalog [F1]', icon: Package, roles: ['admin', 'seller'] },
@@ -88,74 +88,69 @@ export default function Navbar({ onOpenAddProduct }) {
     <header style={{
       background: '#ffffff',
       borderBottom: '1px solid #e2e8f0',
-      padding: '10px 20px',
+      padding: '9px 18px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: '16px',
+      gap: '14px',
       position: 'sticky',
       top: 0,
-      zIndex: 50,
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+      zIndex: 50
     }}>
-      {/* Brand & Store Identity */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Brand & Store Identity - Clean Supermarket Green */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '8px',
-          background: viewMode === 'store'
-            ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
-            : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+          width: '36px',
+          height: '36px',
+          borderRadius: '6px',
+          background: '#15803d',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: viewMode === 'store'
-            ? '0 2px 8px rgba(37, 99, 235, 0.25)'
-            : '0 2px 8px rgba(5, 150, 105, 0.25)'
+          color: '#ffffff'
         }}>
-          <Store size={22} color="#ffffff" />
+          <Store size={20} color="#ffffff" />
         </div>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <h1 style={{ 
-              fontSize: '17px', 
+              fontSize: '16px', 
               fontWeight: 800, 
               color: '#0f172a',
               margin: 0
             }}>
-              {shopSettings.shopName || "Grace Super Shop"}
+              {shopSettings.shopName || "Super Shop"}
             </h1>
             <span style={{
               background: '#f1f5f9',
               color: '#475569',
-              fontSize: '10.5px',
+              fontSize: '10px',
               fontWeight: 700,
-              padding: '2px 6px',
-              borderRadius: '4px',
+              padding: '1px 5px',
+              borderRadius: '3px',
               fontFamily: 'var(--font-mono)',
-              border: '1px solid #e2e8f0'
+              border: '1px solid #cbd5e1'
             }}>
               ID: {shopSettings.shopId || "ZAVI"}
             </span>
 
             <span style={{
-              background: viewMode === 'store' ? '#eff6ff' : '#ecfdf5',
-              color: viewMode === 'store' ? '#1d4ed8' : '#047857',
-              fontSize: '10.5px',
+              background: '#f0fdf4',
+              color: '#15803d',
+              fontSize: '10px',
               fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: '12px',
-              border: `1px solid ${viewMode === 'store' ? '#bfdbfe' : '#a7f3d0'}`
+              padding: '1px 7px',
+              borderRadius: '10px',
+              border: '1px solid #bbf7d0'
             }}>
-              {viewMode === 'store' ? '🏬 Store Management' : '💳 POS Billing'}
+              {viewMode === 'store' ? '🏬 Store Management' : '💳 POS Terminal'}
             </span>
           </div>
           <p style={{ 
             fontSize: '11px', 
             color: '#64748b', 
-            margin: '2px 0 0 0',
-            maxWidth: '260px',
+            margin: '1px 0 0 0',
+            maxWidth: '240px',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis'
@@ -167,7 +162,7 @@ export default function Navbar({ onOpenAddProduct }) {
 
       {/* Navigation tabs & Action Button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <nav style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <nav style={{ display: 'flex', gap: '3px', background: '#f1f5f9', padding: '3px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
           {visibleNavItems.map(item => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -178,29 +173,28 @@ export default function Navbar({ onOpenAddProduct }) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '7px 14px',
-                  borderRadius: '6px',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  borderRadius: '5px',
                   border: 'none',
                   background: isActive ? '#ffffff' : 'transparent',
-                  color: isActive ? (viewMode === 'store' ? '#1d4ed8' : '#059669') : '#475569',
-                  fontWeight: isActive ? 700 : 600,
-                  fontSize: '12.5px',
+                  color: isActive ? '#15803d' : '#475569',
+                  fontWeight: isActive ? 800 : 600,
+                  fontSize: '12px',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
+                  boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
                 }}
               >
-                <Icon size={16} />
+                <Icon size={15} />
                 <span>{item.label}</span>
                 {item.badge && (
                   <span style={{
-                    background: '#059669',
+                    background: '#15803d',
                     color: '#ffffff',
-                    fontSize: '11px',
+                    fontSize: '10.5px',
                     fontWeight: 800,
-                    padding: '1px 6px',
-                    borderRadius: '10px'
+                    padding: '1px 5px',
+                    borderRadius: '8px'
                   }}>
                     {item.badge}
                   </span>
@@ -217,25 +211,23 @@ export default function Navbar({ onOpenAddProduct }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '7px 14px',
-              borderRadius: '8px',
-              border: '1px solid #10b981',
-              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              gap: '5px',
+              padding: '6px 12px',
+              borderRadius: '5px',
+              border: 'none',
+              background: '#15803d',
               color: '#ffffff',
               fontWeight: 700,
-              fontSize: '12.5px',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+              fontSize: '12px',
+              cursor: 'pointer'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#166534'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#15803d'}
             title="Open Store Management (Products Catalog & Settings) in a new tab"
           >
-            <Store size={15} />
+            <Store size={14} />
             <span>Visit Store</span>
-            <ExternalLink size={13} style={{ opacity: 0.9 }} />
+            <ExternalLink size={12} style={{ opacity: 0.9 }} />
           </button>
         ) : (
           <button
@@ -243,52 +235,50 @@ export default function Navbar({ onOpenAddProduct }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '7px 14px',
-              borderRadius: '8px',
-              border: '1px solid #0284c7',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              gap: '5px',
+              padding: '6px 12px',
+              borderRadius: '5px',
+              border: 'none',
+              background: '#15803d',
               color: '#ffffff',
               fontWeight: 700,
-              fontSize: '12.5px',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
+              fontSize: '12px',
+              cursor: 'pointer'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#166534'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#15803d'}
             title="Open POS Terminal Billing Counter in a new tab"
           >
-            <ShoppingCart size={15} />
+            <ShoppingCart size={14} />
             <span>POS Terminal</span>
-            <ExternalLink size={13} style={{ opacity: 0.9 }} />
+            <ExternalLink size={12} style={{ opacity: 0.9 }} />
           </button>
         )}
       </div>
 
       {/* Right meta controls: User Info, Online Status, Sign Out */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* User Identity badge */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          padding: '5px 10px',
-          borderRadius: '6px',
+          gap: '5px',
+          padding: '4px 8px',
+          borderRadius: '5px',
           background: '#f8fafc',
-          border: '1px solid #e2e8f0',
+          border: '1px solid #cbd5e1',
           fontSize: '11.5px',
           color: '#334155'
         }}>
-          {isAdmin ? <Shield size={13} color="#2563eb" /> : <User size={13} color="#059669" />}
+          <User size={13} color="#15803d" />
           <span style={{ fontWeight: 600 }}>{currentUser?.name?.split(' ')[0] || 'Staff'}</span>
           <span style={{ 
-            fontSize: '9.5px', 
+            fontSize: '9px', 
             fontWeight: 800, 
-            padding: '1px 5px', 
-            borderRadius: '4px',
-            background: isAdmin ? '#dbeafe' : '#dcfce7',
-            color: isAdmin ? '#1e40af' : '#15803d',
+            padding: '1px 4px', 
+            borderRadius: '3px',
+            background: '#f1f5f9',
+            color: '#15803d',
             textTransform: 'uppercase'
           }}>
             {currentUser?.role || 'seller'}
@@ -299,16 +289,16 @@ export default function Navbar({ onOpenAddProduct }) {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          padding: '6px 10px',
-          borderRadius: '6px',
-          background: isOnline ? '#ecfdf5' : '#fffbeb',
-          border: `1px solid ${isOnline ? '#a7f3d0' : '#fde68a'}`,
+          gap: '5px',
+          padding: '5px 8px',
+          borderRadius: '5px',
+          background: isOnline ? '#f0fdf4' : '#fffbeb',
+          border: `1px solid ${isOnline ? '#bbf7d0' : '#fde68a'}`,
           fontSize: '11px',
           fontWeight: 700,
-          color: isOnline ? '#059669' : '#d97706'
+          color: isOnline ? '#15803d' : '#d97706'
         }}>
-          {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
+          {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
           <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
 
@@ -322,22 +312,21 @@ export default function Navbar({ onOpenAddProduct }) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '5px',
+            gap: '4px',
             background: '#ffffff',
             border: '1px solid #fecaca',
             color: '#dc2626',
-            padding: '6px 10px',
-            borderRadius: '6px',
-            fontSize: '12px',
+            padding: '5px 9px',
+            borderRadius: '5px',
+            fontSize: '11.5px',
             fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'background 0.15s ease'
+            cursor: 'pointer'
           }}
           onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
           onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
           title="Sign Out of POS System"
         >
-          <LogOut size={13} />
+          <LogOut size={12} />
           <span>Logout</span>
         </button>
       </div>
